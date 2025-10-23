@@ -117,26 +117,37 @@ End Sub
 Private Function ErKantAvMergedAktivitet(wsP As Worksheet, Target As Range) As Object
     On Error Resume Next
 
+    Debug.Print "  ErKantAvMergedAktivitet: Sjekker " & Target.Address
+
     Dim cel As Range
     Set cel = Target.Cells(1, 1) ' Første celle hvis multi-select
 
     ' Sjekk om cellen er merged
     If Not cel.MergeCells Then
+        Debug.Print "    → Ikke merged"
         Set ErKantAvMergedAktivitet = Nothing
         Exit Function
     End If
 
+    Debug.Print "    → Er merged"
+
     Dim ma As Range
     Set ma = cel.MergeArea
+
+    ' Debug merged area info
+    Debug.Print "    → MergeArea: " & ma.Address & ", Farge: " & ma.Interior.Color & ", Bold: " & ma.Font.Bold & ", Verdi: [" & ma.Value & "]"
 
     ' Sjekk om det er en aktivitet (har farge og fet tekst)
     If ma.Interior.Color = RGB(255, 255, 255) Or _
        ma.Interior.ColorIndex = xlColorIndexNone Or _
        Not ma.Font.Bold Or _
        Len(Trim$(ma.Value)) = 0 Then
+        Debug.Print "    → Ikke en aktivitet (hvit/ingen farge ELLER ikke bold ELLER tom)"
         Set ErKantAvMergedAktivitet = Nothing
         Exit Function
     End If
+
+    Debug.Print "    → Er en aktivitet!"
 
     ' Sjekk om dette er første eller siste kolonne i merged area
     Dim startKol As Long, sluttKol As Long, klikketKol As Long
@@ -144,17 +155,23 @@ Private Function ErKantAvMergedAktivitet(wsP As Worksheet, Target As Range) As O
     sluttKol = ma.Column + ma.Columns.Count - 1
     klikketKol = cel.Column
 
+    Debug.Print "    → StartKol: " & startKol & ", SluttKol: " & sluttKol & ", KlikketKol: " & klikketKol
+
     Dim erVenstre As Boolean, erHoyre As Boolean
     erVenstre = (klikketKol = startKol)
     erHoyre = (klikketKol = sluttKol)
 
+    Debug.Print "    → ErVenstre: " & erVenstre & ", ErHoyre: " & erHoyre
+
     If Not erVenstre And Not erHoyre Then
         ' Ikke en kant
+        Debug.Print "    → IKKE EN KANT (midten av aktivitet)"
         Set ErKantAvMergedAktivitet = Nothing
         Exit Function
     End If
 
     ' Det er en kant! Returner info
+    Debug.Print "    → ✓ DET ER EN KANT!"
     Dim info As Object
     Set info = CreateObject("Scripting.Dictionary")
     info("Rad") = ma.Row
@@ -175,6 +192,8 @@ End Function
 Private Sub VisResizeModus(wsP As Worksheet, aktiv As Boolean)
     On Error Resume Next
 
+    Debug.Print "  VisResizeModus: aktiv=" & aktiv
+
     If aktiv Then
         ' Highlight kanten som skal resizes
         Dim kantKol As Long
@@ -184,6 +203,8 @@ Private Sub VisResizeModus(wsP As Worksheet, aktiv As Boolean)
             kantKol = resizeSluttKol
         End If
 
+        Debug.Print "    → Setter rød border på rad " & resizeRad & ", kolonne " & kantKol
+
         With wsP.Cells(resizeRad, kantKol)
             .Borders(xlEdgeLeft).LineStyle = xlContinuous
             .Borders(xlEdgeLeft).Weight = xlThick
@@ -192,8 +213,11 @@ Private Sub VisResizeModus(wsP As Worksheet, aktiv As Boolean)
             .Borders(xlEdgeRight).Weight = xlThick
             .Borders(xlEdgeRight).Color = RGB(255, 0, 0)
         End With
+
+        Debug.Print "    → Rød border satt!"
     Else
         ' Fjern highlight (reset til merged cell sin original border)
+        Debug.Print "    → Deaktiverer resize-modus"
         Application.StatusBar = False
     End If
 End Sub
