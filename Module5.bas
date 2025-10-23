@@ -17,14 +17,9 @@ Option Explicit
 ' ==============================================================================
 
 ' ===== WINDOWS API FOR CTRL-KLIKK DETEKSJON =====
-#If Win64 Then
+#If VBA7 Then
+    ' Excel 2010 og nyere (både 32-bit og 64-bit)
     Public Declare PtrSafe Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
-#Else
-    #If VBA7 Then
-        Public Declare PtrSafe Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
-    #Else
-        Public Declare Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
-    #End If
 #End If
 
 ' ----------------------------------------------------------------------------
