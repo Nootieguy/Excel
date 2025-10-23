@@ -11,14 +11,10 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
 
     Debug.Print ">>> Worksheet_SelectionChange trigget! Target = " & Target.Address & ", CellCount = " & Target.Cells.Count
 
-    ' Håndter kant-klikk resize (to-stegs: først kant, så målcelle)
-    If Target.Cells.Count = 1 Then
-        Debug.Print ">>> Kaller Module5.HaandterCelleKlikk..."
-        Call Module5.HaandterCelleKlikk(Me, Target)
-        Debug.Print ">>> Tilbake fra Module5.HaandterCelleKlikk"
-    Else
-        Debug.Print ">>> Target.Cells.Count = " & Target.Cells.Count & " (ikke 1, skipper)"
-    End If
+    ' Håndter kant-klikk resize (fungerer også for merged cells!)
+    Debug.Print ">>> Kaller Module5.HaandterCelleKlikk..."
+    Call Module5.HaandterCelleKlikk(Me, Target)
+    Debug.Print ">>> Tilbake fra Module5.HaandterCelleKlikk"
 
     Exit Sub
 
