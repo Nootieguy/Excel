@@ -1,7 +1,7 @@
 Attribute VB_Name = "UkeNummer"
 Option Explicit
 
-' Fyller rad 14 med ukenumre sentrert over ukens dager, med linjer på sidene
+' Fyller rad 14 med ukenumre sentrert over ukens dager, med linjer pï¿½ sidene
 Public Sub FyllInnUkenumreMedMerge()
     Dim ws As Worksheet
     Dim c As Long, lastCol As Long
@@ -15,23 +15,23 @@ Public Sub FyllInnUkenumreMedMerge()
     lastCol = ws.Cells(15, ws.Columns.Count).End(xlToLeft).Column
     
     Application.ScreenUpdating = False
-    
-    ' Først, un-merge alle celler i rad 14 og rydd
+
+    ' FÃ¸rst, un-merge alle celler i rad 14 og rydd
     ws.Rows(14).UnMerge
     ws.Range(ws.Cells(14, 2), ws.Cells(14, lastCol)).ClearContents
     ws.Range(ws.Cells(14, 2), ws.Cells(14, lastCol)).Borders.LineStyle = xlLineStyleNone
     
     forrigeUke = -1
     ukeStartCol = 2 ' Start fra kolonne B
-    
-    ' Gå gjennom alle kolonner fra B og utover
-    For c = 2 To lastCol + 1 ' +1 for å fange siste uke
+
+    ' GÃ¥ gjennom alle kolonner fra B og utover
+    For c = 2 To lastCol + 1 ' +1 for Ã¥ fange siste uke
         
         If c <= lastCol And IsDate(ws.Cells(15, c).Value) Then
             dato = ws.Cells(15, c).Value
-            ukeNr = Application.WorksheetFunction.WeekNum(dato, 2) ' 2 = uken starter på mandag
-            
-            ' Når vi treffer en ny uke (eller første gang)
+            ukeNr = Application.WorksheetFunction.WeekNum(dato, 2) ' 2 = uken starter pÃ¥ mandag
+
+            ' NÃ¥r vi treffer en ny uke (eller fÃ¸rste gang)
             If ukeNr <> forrigeUke And forrigeUke <> -1 Then
                 ' Merge forrige uke
                 ukeSluttCol = c - 1
@@ -45,7 +45,7 @@ Public Sub FyllInnUkenumreMedMerge()
                     rng.HorizontalAlignment = xlCenter
                     rng.VerticalAlignment = xlCenter
                     
-                    ' Sett linjer på sidene
+                    ' Sett linjer pï¿½ sidene
                     With rng.Borders(xlEdgeLeft)
                         .LineStyle = xlContinuous
                         .Weight = xlMedium
@@ -63,9 +63,9 @@ Public Sub FyllInnUkenumreMedMerge()
             End If
             
             forrigeUke = ukeNr
-            
+
         ElseIf forrigeUke <> -1 Then
-            ' Siste uke når vi når slutten
+            ' Siste uke nÃ¥r vi nÃ¥r slutten
             ukeSluttCol = c - 1
             Set rng = ws.Range(ws.Cells(14, ukeStartCol), ws.Cells(14, ukeSluttCol))
             
@@ -77,7 +77,7 @@ Public Sub FyllInnUkenumreMedMerge()
                 rng.HorizontalAlignment = xlCenter
                 rng.VerticalAlignment = xlCenter
                 
-                ' Sett linjer på sidene
+                ' Sett linjer pï¿½ sidene
                 With rng.Borders(xlEdgeLeft)
                     .LineStyle = xlContinuous
                     .Weight = xlMedium

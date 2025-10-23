@@ -1,13 +1,13 @@
 Attribute VB_Name = "modDagensOutline"
-' ===== modul: modDagensDatoBlå =====
+' ===== modul: modDagensDatoBlÃ¥ =====
 Option Explicit
 
-' Oppsett – juster ved behov
+' Oppsett - juster ved behov
 Private Const ARK As String = "Planlegger"
 Private Const datoRad As Long = 15          ' datolinjen (ikke 14)
 Private Const FORSTE_DATAKOL As Long = 2     ' B = 2
 
-' Marker dagens dato i rad 15 med blått fyll (kun den cellen)
+' Marker dagens dato i rad 15 med blÃ¥tt fyll (kun den cellen)
 Public Sub MarkerDagensDato_Bla( _
     Optional ByVal ArkNavn As String = ARK, _
     Optional ByVal datoRad As Long = datoRad, _
@@ -47,12 +47,12 @@ Public Sub MarkerDagensDato_Bla( _
         End If
     Next c
 
-    If colIdag = 0 Then Exit Sub  ' ingen treff i dag – ferdig
+    If colIdag = 0 Then Exit Sub  ' ingen treff i dag - ferdig
 
-    ' 3) Sett blått fyll kun i datocellen på rad 15
+    ' 3) Sett blÃ¥tt fyll kun i datocellen pÃ¥ rad 15
     With ws.Cells(datoRad, colIdag).Interior
         .Pattern = xlSolid
-        .Color = RGB(170, 200, 255)  ' myk blå – juster etter smak
+        .Color = RGB(170, 200, 255)  ' myk blÃ¥ - juster etter smak
         .TintAndShade = 0
     End With
 End Sub
