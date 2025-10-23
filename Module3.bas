@@ -1422,20 +1422,20 @@ Private Sub TegnOverlappSkravering(wsP As Worksheet, overlappListe As Object, _
 End Sub
 
 ' Hjelpefunksjoner for � finne person og dato i Planlegger
-Private Function FinnPersonRadIPlanlegger(ws As Worksheet, ByVal navn As String, f�rstePersonRad As Long) As Long
+Private Function FinnPersonRadIPlanlegger(ws As Worksheet, ByVal navn As String, forstePersonRad As Long) As Long
     Dim lastRow As Long, r As Long
     Dim cellValue As String
     lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
 
     ' METODE 1: Eksakt match (case-insensitiv)
-    For r = f�rstePersonRad To lastRow
+    For r = forstePersonRad To lastRow
         If StrComp(Trim$(ws.Cells(r, 1).Value), Trim$(navn), vbTextCompare) = 0 Then
             FinnPersonRadIPlanlegger = r: Exit Function
         End If
     Next r
 
-    ' METODE 2: Delvis match - s�ker starter med navn
-    For r = f�rstePersonRad To lastRow
+    ' METODE 2: Delvis match - soker starter med navn
+    For r = forstePersonRad To lastRow
         cellValue = Trim$(ws.Cells(r, 1).Value)
         If Len(cellValue) > 0 And Len(navn) > 0 Then
             If InStr(1, cellValue, Trim$(navn), vbTextCompare) = 1 Then
@@ -1445,7 +1445,7 @@ Private Function FinnPersonRadIPlanlegger(ws As Worksheet, ByVal navn As String,
     Next r
 
     ' METODE 3: Ultra bred - navn finnes hvor som helst
-    For r = f�rstePersonRad To lastRow
+    For r = forstePersonRad To lastRow
         cellValue = Trim$(ws.Cells(r, 1).Value)
         If Len(cellValue) > 0 And Len(navn) > 0 Then
             If InStr(1, cellValue, Trim$(navn), vbTextCompare) > 0 Then
@@ -2027,21 +2027,21 @@ Private Function FinnDatoKolonne(wsP As Worksheet, d As Date, f�rsteDatoKol As
 End Function
 
 ' Finn person-rad i Planlegger
-Private Function FinnPersonRad(wsP As Worksheet, person As String, f�rstePersonRad As Long) As Long
+Private Function FinnPersonRad(wsP As Worksheet, person As String, forstePersonRad As Long) As Long
     Dim lastRow As Long, r As Long
     Dim cellValue As String
     lastRow = wsP.Cells(wsP.Rows.Count, 1).End(xlUp).Row
 
     ' METODE 1: Eksakt match (case-insensitiv)
-    For r = f�rstePersonRad To lastRow
+    For r = forstePersonRad To lastRow
         If StrComp(Trim$(wsP.Cells(r, 1).Value), Trim$(person), vbTextCompare) = 0 Then
             FinnPersonRad = r
             Exit Function
         End If
     Next r
 
-    ' METODE 2: Delvis match - s�ker starter med person (f.eks. "Lars" matcher "Lars H")
-    For r = f�rstePersonRad To lastRow
+    ' METODE 2: Delvis match - soker starter med person (f.eks. "Lars" matcher "Lars H")
+    For r = forstePersonRad To lastRow
         cellValue = Trim$(wsP.Cells(r, 1).Value)
         If Len(cellValue) > 0 And Len(person) > 0 Then
             ' Sjekk om cellValue starter med person (case-insensitiv)
@@ -2053,7 +2053,7 @@ Private Function FinnPersonRad(wsP As Worksheet, person As String, f�rstePerso
     Next r
 
     ' METODE 3: Ultra bred - person finnes hvor som helst i navnet
-    For r = f�rstePersonRad To lastRow
+    For r = forstePersonRad To lastRow
         cellValue = Trim$(wsP.Cells(r, 1).Value)
         If Len(cellValue) > 0 And Len(person) > 0 Then
             If InStr(1, cellValue, Trim$(person), vbTextCompare) > 0 Then
