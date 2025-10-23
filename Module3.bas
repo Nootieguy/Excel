@@ -504,28 +504,44 @@ End Sub
 ' Ekstraher aktivitetskode fra celle-tekst (for "--")
 Private Function ExtractAktivitetsKode(txt As String) As String
     Dim pos As Long
-    pos = InStr(txt, "--")
+    ' Søk etter " - " separator (med mellomrom)
+    pos = InStr(txt, " - ")
     If pos > 0 Then
         ExtractAktivitetsKode = Trim$(Left$(txt, pos - 1))
     Else
-        ' Hvis ingen "--", ta forste ord
-        pos = InStr(txt, " ")
+        ' Fallback: søk etter " -- " (dobbel separator)
+        pos = InStr(txt, " -- ")
         If pos > 0 Then
             ExtractAktivitetsKode = Trim$(Left$(txt, pos - 1))
         Else
-            ExtractAktivitetsKode = Trim$(txt)
+            ' Hvis ingen separator, ta første ord
+            pos = InStr(txt, " ")
+            If pos > 0 Then
+                ExtractAktivitetsKode = Trim$(Left$(txt, pos - 1))
+            Else
+                ExtractAktivitetsKode = Trim$(txt)
+            End If
         End If
     End If
 End Function
 
-' Ekstraher kommentar fra celle-tekst (etter "--")
+' Ekstraher kommentar fra celle-tekst (etter " - " eller " -- ")
 Private Function ExtractKommentar(txt As String) As String
     Dim pos As Long
-    pos = InStr(txt, "--")
+    ' Søk etter " - " separator (standard)
+    pos = InStr(txt, " - ")
     If pos > 0 Then
-        ExtractKommentar = Trim$(Mid$(txt, pos + 1))
+        ' Hopp over " - " (3 tegn: mellomrom + bindestrek + mellomrom)
+        ExtractKommentar = Trim$(Mid$(txt, pos + 3))
     Else
-        ExtractKommentar = ""
+        ' Fallback: søk etter " -- " (dobbel separator)
+        pos = InStr(txt, " -- ")
+        If pos > 0 Then
+            ' Hopp over " -- " (4 tegn)
+            ExtractKommentar = Trim$(Mid$(txt, pos + 4))
+        Else
+            ExtractKommentar = ""
+        End If
     End If
 End Function
 
@@ -1070,7 +1086,7 @@ Private Function OppdaterAktivitetIPlanlegger(wsP As Worksheet, wsTyp As Workshe
                 Dim overlappSluttCol As Long
                 overlappSluttCol = Application.WorksheetFunction.Min(nyttSluttCol, overlappAktivitetSluttCol)
                 
-                visTekst = kode & IIf(Len(kommentar) > 0, " -- " & kommentar, IIf(Len(beskrivelse) > 0, " -- " & beskrivelse, ""))
+                visTekst = kode & IIf(Len(kommentar) > 0, " - " & kommentar, IIf(Len(beskrivelse) > 0, " - " & beskrivelse, ""))
                 
                 ' Utvid blokken, men teksten sentreres kun til overlapp-start
                 Call ApplyBlockFormattingMedOverlapp(wsP, maalRad, startCol, gammeltSluttCol, overlappStartCol, nyttSluttCol, farge, visTekst)
@@ -1082,7 +1098,7 @@ Private Function OppdaterAktivitetIPlanlegger(wsP As Worksheet, wsTyp As Workshe
             End If
         Else
             ' Ingen overlapp - bare utvid paa samme rad
-            visTekst = kode & IIf(Len(kommentar) > 0, " -- " & kommentar, IIf(Len(beskrivelse) > 0, " -- " & beskrivelse, ""))
+            visTekst = kode & IIf(Len(kommentar) > 0, " - " & kommentar, IIf(Len(beskrivelse) > 0, " - " & beskrivelse, ""))
             Call LagMergedAktivitet(wsP, maalRad, startCol, nyttSluttCol, farge, visTekst)
             OppdaterAktivitetIPlanlegger = True
         End If
@@ -2337,7 +2353,7 @@ Public Sub SynkroniserEnkeltAktivitet(person As String, kode As String, _
     
     ' Tegn ny aktivitet
     Dim visTekst As String
-    visTekst = kode & IIf(Len(kommentar) > 0, " -- " & kommentar, IIf(Len(beskrivelse) > 0, " -- " & beskrivelse, ""))
+    visTekst = kode & IIf(Len(kommentar) > 0, " - " & kommentar, IIf(Len(beskrivelse) > 0, " - " & beskrivelse, ""))
 
     Call LagMergedAktivitet(wsP, maalRad, nyStartCol, nySluttCol, farge, visTekst)
     
@@ -2495,7 +2511,7 @@ Public Sub FlyttAktivitetTilNyPerson(gammelPerson As String, nyPerson As String,
     
     ' STEG 3: Tegn aktivitet hos ny person
     Dim visTekst As String
-    visTekst = kode & IIf(Len(kommentar) > 0, " -- " & kommentar, IIf(Len(beskrivelse) > 0, " -- " & beskrivelse, ""))
+    visTekst = kode & IIf(Len(kommentar) > 0, " - " & kommentar, IIf(Len(beskrivelse) > 0, " - " & beskrivelse, ""))
 
     Call LagMergedAktivitet(wsP, nyRad, startCol, sluttCol, farge, visTekst)
     
