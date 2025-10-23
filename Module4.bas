@@ -2,12 +2,12 @@ Attribute VB_Name = "Module4"
 
 Option Explicit
 '
-' =================== MODUL 4 � UVALGTE (v4.8 - DYNAMISK) ===================
-' Ufordelte aktiviteter � liste i UVALGTE. Forh�ndsvisning nederst i Planlegger.
-' N�r Person velges i tabellen, flyttes aktiviteten til riktig person i Planlegger.
+' =================== MODUL 4 - UVALGTE (v4.8 - DYNAMISK) ===================
+' Ufordelte aktiviteter - liste i UVALGTE. Forhåndsvisning nederst i Planlegger.
+' Når Person velges i tabellen, flyttes aktiviteten til riktig person i Planlegger.
 '
 ' ENDRING v4.8: Bruker Named Ranges for dynamiske verdier (som Module1 og FjernMarkert)
-' Dette tillater � legge til personer uten � m�tte endre konstanter.
+' Dette tillater - legge til personer uten - måtte endre konstanter.
 
 ' ===== KONFIG =====
 Private Const ARK_PLAN As String = "Planlegger"
@@ -44,21 +44,21 @@ Private Const NM_NM_KODER As String = "AKTIV_KODER"
 Private Const NM_NM_PERSON As String = "PERSONLISTE"
 Private Const NM_BTN_LEGG As String = "btnUvalgtLegg"
 Private Const NM_BTN_PREV As String = "btnUvalgtPreview"
-Private Const NM_CB_LEGG As String = "chkUvalgtLeggN�"
+Private Const NM_CB_LEGG As String = "chkUvalgtLeggNå"
 
 ' =================== HJELPEFUNKSJONER FOR DYNAMISKE VERDIER ===================
 ' Disse henter verdier fra Named Ranges i Planlegger-arket
 
-Private Function HentF�rsteDatoKol() As Long
-    HentF�rsteDatoKol = Worksheets(ARK_PLAN).Range("FirstDate").Column
+Private Function HentFørsteDatoKol() As Long
+    HentFørsteDatoKol = Worksheets(ARK_PLAN).Range("FirstDate").Column
 End Function
 
 Private Function HentDatoRad() As Long
     HentDatoRad = Worksheets(ARK_PLAN).Range("FirstDate").Row
 End Function
 
-Private Function HentF�rstePersonRad() As Long
-    HentF�rstePersonRad = Worksheets(ARK_PLAN).Range("PersonHeader").Row + 1
+Private Function HentFørstePersonRad() As Long
+    HentFørstePersonRad = Worksheets(ARK_PLAN).Range("PersonHeader").Row + 1
 End Function
 
 ' =================== OPPSETT ===================
@@ -89,7 +89,7 @@ Public Sub Uvalgte_Oppsett()
     ' Toppstripe
     With wsU.Range("A1:G1")
         .Merge
-        .Value = "UVALGTE � arbeidsbenk"
+        .Value = "UVALGTE - arbeidsbenk"
         .Interior.Color = FARGE_PANEL_TITLE
         .Font.Bold = True
         .Font.Size = 16
@@ -147,7 +147,7 @@ Public Sub Uvalgte_Oppsett()
     Dim cb As Object
     Set cb = wsU.CheckBoxes.Add(wsU.Cells(IP_ROW + 2, 7).Left, wsU.Cells(IP_ROW + 2, 7).Top, 150, PANEL_H)
     With cb
-        .Caption = " Legg til n�"
+        .Caption = " Legg til nå"
         .Name = NM_CB_LEGG
         .OnAction = "'" & ThisWorkbook.Name & "'!Uvalgte_PanelCheckToggle"
         .Value = False
@@ -167,8 +167,8 @@ Public Sub Uvalgte_Oppsett()
         End With
     End With
 
-    ' Knapp: oppfrisk forh�ndsvisning
-    LagKnapp wsU, NM_BTN_PREV, "Oppfrisk forh�ndsvisning", _
+    ' Knapp: oppfrisk forhåndsvisning
+    LagKnapp wsU, NM_BTN_PREV, "Oppfrisk forhåndsvisning", _
              "'" & ThisWorkbook.Name & "'!Uvalgte_RefreshPreview", _
              anchPrev, 190, PANEL_H
 
@@ -195,7 +195,7 @@ Public Sub Uvalgte_PanelCheckToggle()
     End If
 End Sub
 
-' Legg �n rad i UVALGTE (uten person)
+' Legg én rad i UVALGTE (uten person)
 Public Sub Uvalgte_LeggTilFraPanel()
     Dim wsU As Worksheet: Set wsU = ThisWorkbook.Worksheets(ARK_UVALGT)
     Dim wsO As Worksheet: Set wsO = ThisWorkbook.Worksheets(ARK_OVERSIKT)
@@ -211,7 +211,7 @@ Public Sub Uvalgte_LeggTilFraPanel()
     If Len(kode) = 0 Or Not IsDate(fraD) Or Not IsDate(tilD) Then
         MsgBox "Velg kode, fra- og til-dato.", vbExclamation: Exit Sub
     End If
-    If tilD < fraD Then MsgBox "Til kan ikke v�re f�r Fra.", vbExclamation: Exit Sub
+    If tilD < fraD Then MsgBox "Til kan ikke være før Fra.", vbExclamation: Exit Sub
 
     If Not LookupAktivitet(wsO, UCase$(kode), beskrivelse, f) Then beskrivelse = ""
 
@@ -234,10 +234,10 @@ End Sub
 ' Flytt EN rad fra UVALGTE til personens kalender MED SMART OVERLAPP
 Public Sub Uvalgte_TildelRad(ByVal r As Long)
     ' Hent dynamiske verdier
-    Dim f�rsteDatoKol As Long, datoRad As Long, f�rstePersonRad As Long
-    f�rsteDatoKol = HentF�rsteDatoKol()
+    Dim førsteDatoKol As Long, datoRad As Long, førstePersonRad As Long
+    førsteDatoKol = HentFørsteDatoKol()
     datoRad = HentDatoRad()
-    f�rstePersonRad = HentF�rstePersonRad()
+    førstePersonRad = HentFørstePersonRad()
     
     Dim wsU As Worksheet: Set wsU = ThisWorkbook.Worksheets(ARK_UVALGT)
     Dim wsP As Worksheet: Set wsP = ThisWorkbook.Worksheets(ARK_PLAN)
@@ -255,7 +255,7 @@ Public Sub Uvalgte_TildelRad(ByVal r As Long)
     If Len(kode) = 0 Then MsgBox "Mangler kode i raden.", vbExclamation: Exit Sub
     If Len(person) = 0 Then MsgBox "Velg person i rullegardinen.", vbExclamation: Exit Sub
     If Not IsDate(fraD) Or Not IsDate(tilD) Then MsgBox "Ugyldig fra/til-dato.", vbExclamation: Exit Sub
-    If CLng(tilD) < CLng(fraD) Then MsgBox "Til-dato kan ikke v�re f�r fra-dato.", vbExclamation: Exit Sub
+    If CLng(tilD) < CLng(fraD) Then MsgBox "Til-dato kan ikke være før fra-dato.", vbExclamation: Exit Sub
 
     Dim beskrivelse As String, f As Long
     If Not LookupAktivitet(wsO, kode, beskrivelse, f) Then
@@ -273,7 +273,7 @@ Public Sub Uvalgte_TildelRad(ByVal r As Long)
     If eCol < sCol Then t = sCol: sCol = eCol: eCol = t
 
     Dim personRow As Long
-    personRow = FinnPersonRad(wsP, person, f�rstePersonRad)
+    personRow = FinnPersonRad(wsP, person, førstePersonRad)
     If personRow = 0 Then
         MsgBox "Fant ikke personen '" & person & "' i kolonne A i Planlegger.", vbExclamation
         Exit Sub
@@ -283,23 +283,23 @@ Public Sub Uvalgte_TildelRad(ByVal r As Long)
     Set farger = HentAktivitetsFarger(wsO)
 
     ' SMART: Finn ledig rad (lager ny kun ved overlapp)
-    Dim m�lRad As Long
-    m�lRad = FinnEllerOpprettLedigRad_UtenNavn(wsP, personRow, sCol, eCol, farger, f�rsteDatoKol, datoRad)
-    If m�lRad = 0 Then
+    Dim målRad As Long
+    målRad = FinnEllerOpprettLedigRad_UtenNavn(wsP, personRow, sCol, eCol, farger, førsteDatoKol, datoRad)
+    If målRad = 0 Then
         MsgBox "Fant ikke ledig rad for perioden.", vbExclamation
         Exit Sub
     End If
 
     Dim visTekst As String
-    visTekst = kode & IIf(Len(komm) > 0, " � " & komm, IIf(Len(beskrivelse) > 0, " � " & beskrivelse, ""))
+    visTekst = kode & IIf(Len(komm) > 0, " - " & komm, IIf(Len(beskrivelse) > 0, " - " & beskrivelse, ""))
 
-    ApplyBlockFormatting_Safe wsP, m�lRad, sCol, eCol, f, visTekst
+    ApplyBlockFormatting_Safe wsP, målRad, sCol, eCol, f, visTekst
 
     RyddRadIUvalgte wsU, r
     
     ' Slett tomme under-rader
     Dim lastCol As Long: lastCol = SisteDatoKolonneU4(wsP, datoRad)
-    SlettTommeUnderRaderIPerson wsP, personRow, lastCol, f�rsteDatoKol
+    SlettTommeUnderRaderIPerson wsP, personRow, lastCol, førsteDatoKol
     
     ' Refresh preview
     Uvalgte_RefreshPreview
@@ -360,11 +360,11 @@ Private Sub RyddRadIUvalgte(ws As Worksheet, ByVal rad As Long)
     Next c
 End Sub
 
-' Forh�ndsvis alle uvalgte med SMART overlapp-h�ndtering (SUPER-OPTIMALISERT)
+' Forhåndsvis alle uvalgte med SMART overlapp-håndtering (SUPER-OPTIMALISERT)
 Public Sub Uvalgte_RefreshPreview()
     ' Hent dynamiske verdier
-    Dim f�rsteDatoKol As Long, datoRad As Long
-    f�rsteDatoKol = HentF�rsteDatoKol()
+    Dim førsteDatoKol As Long, datoRad As Long
+    førsteDatoKol = HentFørsteDatoKol()
     datoRad = HentDatoRad()
     
     Dim wsU As Worksheet: Set wsU = ThisWorkbook.Worksheets(ARK_UVALGT)
@@ -394,14 +394,14 @@ Public Sub Uvalgte_RefreshPreview()
     Dim c As Long
     If lastRow >= prevRow Then
         Dim rngRydd As Range
-        Set rngRydd = wsP.Range(wsP.Cells(prevRow, f�rsteDatoKol), wsP.Cells(lastRow, lastCol))
+        Set rngRydd = wsP.Range(wsP.Cells(prevRow, førsteDatoKol), wsP.Cells(lastRow, lastCol))
         
         rngRydd.ClearContents
         rngRydd.Interior.Color = RGB(255, 255, 255)
         rngRydd.Font.Bold = False
         rngRydd.Font.ColorIndex = xlColorIndexAutomatic
         
-        ' Sett grid p� alle celler samtidig (RASK)
+        ' Sett grid på alle celler samtidig (RASK)
         With rngRydd.Borders
             .LineStyle = xlContinuous
             .Weight = xlThin
@@ -412,7 +412,7 @@ Public Sub Uvalgte_RefreshPreview()
     ' STEG 3: Tell aktiviteter
     Dim lr As Long: lr = wsU.Cells(wsU.Rows.Count, COL_KODE).End(xlUp).Row
     If lr < TBL_START_ROW Then
-        SlettTommePreviewRaderSmart wsP, prevRow, lastCol, f�rsteDatoKol
+        SlettTommePreviewRaderSmart wsP, prevRow, lastCol, førsteDatoKol
         Application.EnableEvents = True
         Application.Calculation = xlCalculationAutomatic
         Application.ScreenUpdating = True
@@ -422,7 +422,7 @@ Public Sub Uvalgte_RefreshPreview()
     ' STEG 4: Plasser aktiviteter - LAG RADER KUN VED OVERLAPP
     Dim rowIdx As Long, beskrivelse As String, f As Long
     Dim sCol As Long, eCol As Long, t As Long, visTekst As String
-    Dim m�lRad As Long
+    Dim målRad As Long
     
     For rowIdx = TBL_START_ROW To lr
         If Len(Trim$(wsU.Cells(rowIdx, COL_KODE).Value)) > 0 Then
@@ -433,25 +433,25 @@ Public Sub Uvalgte_RefreshPreview()
                 If eCol < sCol Then t = sCol: sCol = eCol: eCol = t
                 
                 ' Finn ledig rad (lager ny kun ved overlapp)
-                m�lRad = FinnLedigPreviewRadSmart(wsP, prevRow, sCol, eCol, f�rsteDatoKol)
+                målRad = FinnLedigPreviewRadSmart(wsP, prevRow, sCol, eCol, førsteDatoKol)
                 
-                If m�lRad > 0 Then
+                If målRad > 0 Then
                     If Not LookupAktivitet(wsO, UCase$(wsU.Cells(rowIdx, COL_KODE).Value), beskrivelse, f) Then
                         f = FARGE_PREVIEW
                     End If
                     
                     visTekst = UCase$(wsU.Cells(rowIdx, COL_KODE).Value) & _
-                               IIf(Len(Trim$(wsU.Cells(rowIdx, COL_KOMM).Value)) > 0, " � " & Trim$(wsU.Cells(rowIdx, COL_KOMM).Value), _
-                                  IIf(Len(beskrivelse) > 0, " � " & beskrivelse, ""))
+                               IIf(Len(Trim$(wsU.Cells(rowIdx, COL_KOMM).Value)) > 0, " - " & Trim$(wsU.Cells(rowIdx, COL_KOMM).Value), _
+                                  IIf(Len(beskrivelse) > 0, " - " & beskrivelse, ""))
                     
-                    ApplyBlockFormatting_Safe wsP, m�lRad, sCol, eCol, f, visTekst
+                    ApplyBlockFormatting_Safe wsP, målRad, sCol, eCol, f, visTekst
                 End If
             End If
         End If
     Next rowIdx
     
     ' STEG 5: Slett tomme under-rader
-    SlettTommePreviewRaderSmart wsP, prevRow, lastCol, f�rsteDatoKol
+    SlettTommePreviewRaderSmart wsP, prevRow, lastCol, førsteDatoKol
     
     Application.EnableEvents = True
     Application.Calculation = xlCalculationAutomatic
@@ -499,7 +499,7 @@ Private Function SpanHarAnnenAktivitet_U4(ws As Worksheet, ByVal rad As Long, _
                     SpanHarAnnenAktivitet_U4 = True: Exit Function
                 End If
             ElseIf cel.Interior.ColorIndex <> xlColorIndexNone Then
-                If FargeN�rAktivitet_U4(cel.Interior.Color, farger) Then
+                If FargeNårAktivitet_U4(cel.Interior.Color, farger) Then
                     SpanHarAnnenAktivitet_U4 = True: Exit Function
                 End If
             End If
@@ -522,14 +522,14 @@ Private Function HentAktivitetsFarger(wsTyp As Worksheet) As Object
     Set HentAktivitetsFarger = dict
 End Function
 
-' Sjekk om en farge er n�r en aktivitetsfarge
-Private Function FargeN�rAktivitet_U4(col As Long, ByVal farger As Object, Optional tol As Long = 18) As Boolean
+' Sjekk om en farge er når en aktivitetsfarge
+Private Function FargeNårAktivitet_U4(col As Long, ByVal farger As Object, Optional tol As Long = 18) As Boolean
     If col = RGB(255, 255, 255) Then Exit Function ' Hvit er ikke aktivitet
     Dim k As Variant, refCol As Long
     For Each k In farger.Keys
         refCol = CLng(farger(k))
         If FargeAvstand_U4(col, refCol) <= tol Then
-            FargeN�rAktivitet_U4 = True
+            FargeNårAktivitet_U4 = True
             Exit Function
         End If
     Next k
@@ -566,8 +566,8 @@ End Sub
 ' Sammenhengende personliste i UVALGTE!K (for stabil validering)
 Private Sub DefinerPersonListe(wsP As Worksheet)
     ' Hent dynamiske verdier
-    Dim f�rstePersonRad As Long
-    f�rstePersonRad = HentF�rstePersonRad()
+    Dim førstePersonRad As Long
+    førstePersonRad = HentFørstePersonRad()
     
     Dim wsU As Worksheet: Set wsU = ThisWorkbook.Worksheets(ARK_UVALGT)
     Dim lastRow As Long, r As Long, w As Long
@@ -575,7 +575,7 @@ Private Sub DefinerPersonListe(wsP As Worksheet)
 
     lastRow = wsP.Cells(wsP.Rows.Count, 1).End(xlUp).Row
     w = 2
-    For r = f�rstePersonRad To lastRow
+    For r = førstePersonRad To lastRow
         If Len(Trim$(wsP.Cells(r, 1).Value)) > 0 Then
             wsU.Cells(w, "K").Value = Trim$(wsP.Cells(r, 1).Value)
             w = w + 1
@@ -587,26 +587,26 @@ Private Sub DefinerPersonListe(wsP As Worksheet)
         ThisWorkbook.Names.Add Name:=NM_NM_PERSON, _
             RefersTo:=wsU.Range(wsU.Cells(2, "K"), wsU.Cells(w - 1, "K"))
     Else
-        wsU.Range("K2").Value = "�"
+        wsU.Range("K2").Value = "-"
         ThisWorkbook.Names.Add Name:=NM_NM_PERSON, RefersTo:=wsU.Range("K2")
     End If
 End Sub
 
 Private Function Uvalgte_FinnEllerLagPreviewRad(wsP As Worksheet) As Long
     ' Hent dynamiske verdier
-    Dim f�rstePersonRad As Long
-    f�rstePersonRad = HentF�rstePersonRad()
+    Dim førstePersonRad As Long
+    førstePersonRad = HentFørstePersonRad()
     
     Dim lastRow As Long: lastRow = wsP.Cells(wsP.Rows.Count, 1).End(xlUp).Row
     Dim r As Long
-    For r = lastRow To f�rstePersonRad Step -1
-        If UCase$(Trim$(wsP.Cells(r, 1).Value)) Like "UVALGTE � FORH�NDSVISNING*" Then
+    For r = lastRow To førstePersonRad Step -1
+        If UCase$(Trim$(wsP.Cells(r, 1).Value)) Like "UVALGTE - FORHÅNDSVISNING*" Then
             Uvalgte_FinnEllerLagPreviewRad = r: Exit Function
         End If
     Next r
     wsP.Rows(lastRow + 1).Insert Shift:=xlDown
     wsP.Rows(lastRow + 2).Insert Shift:=xlDown
-    wsP.Cells(lastRow + 2, 1).Value = "UVALGTE � forh�ndsvisning"
+    wsP.Cells(lastRow + 2, 1).Value = "UVALGTE - forhåndsvisning"
     wsP.Cells(lastRow + 2, 1).Font.Bold = True
     Uvalgte_FinnEllerLagPreviewRad = lastRow + 2
 End Function
@@ -618,12 +618,12 @@ End Function
 
 Private Function FinnDatoKolonne(ws As Worksheet, d As Date, datoRad As Long) As Long
     ' Hent dynamiske verdier
-    Dim f�rsteDatoKol As Long
-    f�rsteDatoKol = HentF�rsteDatoKol()
+    Dim førsteDatoKol As Long
+    førsteDatoKol = HentFørsteDatoKol()
     
     Dim lastCol As Long, c As Long
     lastCol = ws.Cells(datoRad, ws.Columns.Count).End(xlToLeft).Column
-    For c = f�rsteDatoKol To lastCol
+    For c = førsteDatoKol To lastCol
         If IsDate(ws.Cells(datoRad, c).Value) Then
             If CLng(CDate(ws.Cells(datoRad, c).Value)) = CLng(d) Then
                 FinnDatoKolonne = c
@@ -633,10 +633,10 @@ Private Function FinnDatoKolonne(ws As Worksheet, d As Date, datoRad As Long) As
     Next c
 End Function
 
-Private Function FinnPersonRad(ws As Worksheet, ByVal navn As String, f�rstePersonRad As Long) As Long
+Private Function FinnPersonRad(ws As Worksheet, ByVal navn As String, førstePersonRad As Long) As Long
     Dim lastRow As Long, r As Long
     lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
-    For r = f�rstePersonRad To lastRow
+    For r = førstePersonRad To lastRow
         If StrComp(Trim$(ws.Cells(r, 1).Value), Trim$(navn), vbTextCompare) = 0 Then
             FinnPersonRad = r: Exit Function
         End If
@@ -648,7 +648,7 @@ Public Function SisteDatoKolonneU4(ws As Worksheet, ByVal headerRow As Long) As 
 End Function
 
 Private Sub ResetToWhiteGrid(ByVal cel As Range)
-    ' Fjern innhold f�rst
+    ' Fjern innhold først
     cel.ClearContents
     cel.ClearComments
     
@@ -703,12 +703,12 @@ Private Sub TryDeleteShape(ws As Worksheet, ByVal shpName As String)
     On Error Resume Next: ws.Shapes(shpName).Delete: On Error GoTo 0
 End Sub
 
-' Sl�OppAktivitet fallback (tolerant)
+' SlåOppAktivitet fallback (tolerant)
 Private Function LookupAktivitet(wsTyp As Worksheet, ByVal kode As String, _
                                  ByRef beskrivelse As String, ByRef farge As Long) As Boolean
     On Error GoTo Lokal
     beskrivelse = vbNullString: farge = 0
-    LookupAktivitet = Module1.Sl�OppAktivitet(wsTyp, kode, beskrivelse, farge)
+    LookupAktivitet = Module1.SlåOppAktivitet(wsTyp, kode, beskrivelse, farge)
     Exit Function
 Lokal:
     On Error GoTo 0
@@ -727,31 +727,31 @@ End Function
 
 ' ========= FORMATTERINGS-WRAPPER =========
 
-Private Sub ApplyBlockFormatting_Safe(ws As Worksheet, m�lRad As Long, _
+Private Sub ApplyBlockFormatting_Safe(ws As Worksheet, målRad As Long, _
     startCol As Long, sluttCol As Long, farge As Long, visTekst As String)
 
     Dim ok As Boolean
     On Error Resume Next
     Application.Run "'" & ThisWorkbook.Name & "'!ApplyBlockFormatting", _
-                    ws, m�lRad, startCol, sluttCol, farge, visTekst
+                    ws, målRad, startCol, sluttCol, farge, visTekst
     ok = (Err.Number = 0): Err.Clear
     If Not ok Then
         Application.Run "'" & ThisWorkbook.Name & "'!ApplyBlockFormatting", _
-                        ws, m�lRad, startCol, sluttCol, farge, visTekst, Empty
+                        ws, målRad, startCol, sluttCol, farge, visTekst, Empty
         ok = (Err.Number = 0): Err.Clear
     End If
     On Error GoTo 0
-    If Not ok Then ApplyBlockFormattingU4 ws, m�lRad, startCol, sluttCol, farge, visTekst
+    If Not ok Then ApplyBlockFormattingU4 ws, målRad, startCol, sluttCol, farge, visTekst
 End Sub
 
-Private Sub ApplyBlockFormattingU4(ws As Worksheet, m�lRad As Long, _
+Private Sub ApplyBlockFormattingU4(ws As Worksheet, målRad As Long, _
     startCol As Long, sluttCol As Long, farge As Long, visTekst As String)
 
     Dim rng As Range, startCell As Range, rngUnder As Range
     Application.ScreenUpdating = False
 
-    Set rng = ws.Range(ws.Cells(m�lRad, startCol), ws.Cells(m�lRad, sluttCol))
-    Set startCell = ws.Cells(m�lRad, startCol)
+    Set rng = ws.Range(ws.Cells(målRad, startCol), ws.Cells(målRad, sluttCol))
+    Set startCell = ws.Cells(målRad, startCol)
 
     rng.ClearContents
     rng.ClearComments
@@ -759,10 +759,10 @@ Private Sub ApplyBlockFormattingU4(ws As Worksheet, m�lRad As Long, _
     rng.Interior.TintAndShade = 0
     rng.Interior.Color = farge
 
-    ' Fjern alle borders f�rst
+    ' Fjern alle borders først
     rng.Borders.LineStyle = xlLineStyleNone
     
-    ' Sett kraftige ytterkanter p� blokken
+    ' Sett kraftige ytterkanter på blokken
     With rng.Borders(xlEdgeLeft)
         .LineStyle = xlContinuous: .Weight = xlThick: .Color = RGB(0, 0, 0)
     End With
@@ -780,9 +780,9 @@ Private Sub ApplyBlockFormattingU4(ws As Worksheet, m�lRad As Long, _
     rng.Borders(xlInsideVertical).LineStyle = xlLineStyleNone
     rng.Borders(xlInsideHorizontal).LineStyle = xlLineStyleNone
 
-    ' KRITISK: Gjenopprett bunnlinje p� raden UNDER blokken
-    If m�lRad < ws.Rows.Count Then
-        Set rngUnder = ws.Range(ws.Cells(m�lRad + 1, startCol), ws.Cells(m�lRad + 1, sluttCol))
+    ' KRITISK: Gjenopprett bunnlinje på raden UNDER blokken
+    If målRad < ws.Rows.Count Then
+        Set rngUnder = ws.Range(ws.Cells(målRad + 1, startCol), ws.Cells(målRad + 1, sluttCol))
         With rngUnder.Borders(xlEdgeTop)
             .LineStyle = xlContinuous
             .Weight = xlThin
@@ -811,14 +811,14 @@ End Function
 Private Function FinnEllerOpprettLedigRad_UtenNavn(ws As Worksheet, _
     personRow As Long, startCol As Long, sluttCol As Long, _
     Optional ByVal farger As Object, _
-    Optional f�rsteDatoKol As Long = 0, _
+    Optional førsteDatoKol As Long = 0, _
     Optional datoRad As Long = 0) As Long
 
     ' Hent dynamiske verdier hvis ikke oppgitt
-    If f�rsteDatoKol = 0 Then f�rsteDatoKol = HentF�rsteDatoKol()
+    If førsteDatoKol = 0 Then førsteDatoKol = HentFørsteDatoKol()
     If datoRad = 0 Then datoRad = HentDatoRad()
     
-    ' Fors�k � kalle originalen hvis den finnes
+    ' Forsåk - kalle originalen hvis den finnes
     On Error Resume Next
     FinnEllerOpprettLedigRad_UtenNavn = Application.Run("'" & ThisWorkbook.Name & _
         "'!FinnEllerOpprettLedigRad_UtenNavn", ws, personRow, startCol, sluttCol, farger)
@@ -852,7 +852,7 @@ Private Function FinnEllerOpprettLedigRad_UtenNavn(ws As Worksheet, _
                 If cel.Interior.Color <> RGB(255, 255, 255) Then
                     ' Hvis vi har farger-objekt, sjekk om det er aktivitetsfarge
                     If Not farger Is Nothing Then
-                        If FargeN�rAktivitet_U4(cel.Interior.Color, farger) Then
+                        If FargeNårAktivitet_U4(cel.Interior.Color, farger) Then
                             fri = False: Exit For
                         End If
                     Else
@@ -878,7 +878,7 @@ Private Function FinnEllerOpprettLedigRad_UtenNavn(ws As Worksheet, _
     ' Nullstill alle datoceller til hvit med grid
     Dim lastCol As Long
     lastCol = SisteDatoKolonneU4(ws, datoRad)
-    For c = f�rsteDatoKol To lastCol
+    For c = førsteDatoKol To lastCol
         NullstillCelleTilHvitMedGrid ws.Cells(blockEnd + 1, c)
     Next c
     
@@ -919,12 +919,12 @@ Private Sub NullstillCelleTilHvitMedGrid(ByVal cel As Range)
     End With
 End Sub
 
-' =================== SMART OVERLAPP-H�NDTERING (KUN N�R N�DVENDIG) ===================
+' =================== SMART OVERLAPP-HÅNDTERING (KUN NÅR NØDVENDIG) ===================
 
 ' Finn ledig rad - LAG KUN NY RAD VED OVERLAPP
 Private Function FinnLedigPreviewRadSmart(ws As Worksheet, prevRow As Long, _
                                           startCol As Long, sluttCol As Long, _
-                                          f�rsteDatoKol As Long) As Long
+                                          førsteDatoKol As Long) As Long
     Dim r As Long, c As Long, ledig As Boolean
     Dim lastRow As Long
     
@@ -956,7 +956,7 @@ Private Function FinnLedigPreviewRadSmart(ws As Worksheet, prevRow As Long, _
         End If
     Next r
     
-    ' INGEN ledig rad - LAG NY RAD (kun �n)
+    ' INGEN ledig rad - LAG NY RAD (kun én)
     Dim nyRad As Long, datoRad As Long
     nyRad = lastRow + 1
     datoRad = HentDatoRad()
@@ -968,13 +968,13 @@ Private Function FinnLedigPreviewRadSmart(ws As Worksheet, prevRow As Long, _
     ws.Rows(nyRad).PasteSpecial xlPasteFormats
     Application.CutCopyMode = False
     
-    ' T�m kolonne A
+    ' Tøm kolonne A
     ws.Cells(nyRad, 1).ClearContents
     
     ' Nullstill alle datoceller
     Dim lastCol As Long
     lastCol = SisteDatoKolonneU4(ws, datoRad)
-    For c = f�rsteDatoKol To lastCol
+    For c = førsteDatoKol To lastCol
         ResetToWhiteGrid ws.Cells(nyRad, c)
     Next c
     
@@ -982,12 +982,12 @@ Private Function FinnLedigPreviewRadSmart(ws As Worksheet, prevRow As Long, _
 End Function
 
 ' Slett BARE tomme under-rader (OPTIMALISERT)
-Private Sub SlettTommePreviewRaderSmart(ws As Worksheet, prevRow As Long, lastCol As Long, f�rsteDatoKol As Long)
+Private Sub SlettTommePreviewRaderSmart(ws As Worksheet, prevRow As Long, lastCol As Long, førsteDatoKol As Long)
     Dim r As Long, tom As Boolean, c As Long
     Dim lastRow As Long
     Dim maxSearch As Long
     
-    ' Sett maks s�kegrense
+    ' Sett maks såkegrense
     maxSearch = prevRow + 50
     If maxSearch > ws.Rows.Count Then maxSearch = ws.Rows.Count
     
@@ -1001,7 +1001,7 @@ Private Sub SlettTommePreviewRaderSmart(ws As Worksheet, prevRow As Long, lastCo
     ' Slett tomme under-rader (IKKE prevRow selv)
     For r = lastRow To prevRow + 1 Step -1
         tom = True
-        For c = f�rsteDatoKol To lastCol
+        For c = førsteDatoKol To lastCol
             If Len(Trim$(ws.Cells(r, c).Value)) > 0 Then
                 tom = False
                 Exit For
@@ -1020,7 +1020,7 @@ Private Sub SlettTommePreviewRaderSmart(ws As Worksheet, prevRow As Long, lastCo
 End Sub
 
 ' Slett tomme under-rader i en personblokk (OPTIMALISERT)
-Private Sub SlettTommeUnderRaderIPerson(ws As Worksheet, personRow As Long, lastCol As Long, f�rsteDatoKol As Long)
+Private Sub SlettTommeUnderRaderIPerson(ws As Worksheet, personRow As Long, lastCol As Long, førsteDatoKol As Long)
     Dim blockEnd As Long
     Dim r As Long, c As Long, tom As Boolean
     
@@ -1034,7 +1034,7 @@ Private Sub SlettTommeUnderRaderIPerson(ws As Worksheet, personRow As Long, last
     ' Slett tomme under-rader (ikke hovedraden)
     For r = blockEnd To personRow + 1 Step -1
         tom = True
-        For c = f�rsteDatoKol To lastCol
+        For c = førsteDatoKol To lastCol
             If Len(Trim$(ws.Cells(r, c).Value)) > 0 Then
                 tom = False
                 Exit For

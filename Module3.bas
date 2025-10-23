@@ -1428,7 +1428,7 @@ End Sub
 ' FORDELER:
 '   - En aktivitet = en entitet (ikke mange celler)
 '   - Eliminerer "blor ut"-problemer
-'   - Excel h�ndterer tekstplassering automatisk
+'   - Excel håndterer tekstplassering automatisk
 '   - Intui
 
 tivt for brukere (klikk hvor som helst velger hele aktiviteten)

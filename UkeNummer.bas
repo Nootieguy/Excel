@@ -1,7 +1,7 @@
 Attribute VB_Name = "UkeNummer"
 Option Explicit
 
-' Fyller rad 14 med ukenumre sentrert over ukens dager, med linjer p� sidene
+' Fyller rad 14 med ukenumre sentrert over ukens dager, med linjer på sidene
 Public Sub FyllInnUkenumreMedMerge()
     Dim ws As Worksheet
     Dim c As Long, lastCol As Long
@@ -45,7 +45,7 @@ Public Sub FyllInnUkenumreMedMerge()
                     rng.HorizontalAlignment = xlCenter
                     rng.VerticalAlignment = xlCenter
                     
-                    ' Sett linjer p� sidene
+                    ' Sett linjer på sidene
                     With rng.Borders(xlEdgeLeft)
                         .LineStyle = xlContinuous
                         .Weight = xlMedium
@@ -76,8 +76,8 @@ Public Sub FyllInnUkenumreMedMerge()
                 rng.Font.Size = 10
                 rng.HorizontalAlignment = xlCenter
                 rng.VerticalAlignment = xlCenter
-                
-                ' Sett linjer p� sidene
+
+                ' Sett linjer på sidene
                 With rng.Borders(xlEdgeLeft)
                     .LineStyle = xlContinuous
                     .Weight = xlMedium

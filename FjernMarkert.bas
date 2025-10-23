@@ -5,16 +5,16 @@ Option Explicit
 Private Const ARK_PLAN As String = "Planlegger"
 
 ' Alle verdier som Property Get for konsistens
-Public Property Get F�RSTE_DATAKOL() As Long
-    F�RSTE_DATAKOL = Worksheets(ARK_PLAN).Range("FirstDate").Column
+Public Property Get FØRSTE_DATAKOL() As Long
+    FØRSTE_DATAKOL = Worksheets(ARK_PLAN).Range("FirstDate").Column
 End Property
 
 Public Property Get datoRad() As Long
     datoRad = Worksheets(ARK_PLAN).Range("FirstDate").Row
 End Property
 
-Public Property Get F�RSTE_PERSONRAD() As Long
-    F�RSTE_PERSONRAD = Worksheets(ARK_PLAN).Range("PersonHeader").Row + 1
+Public Property Get FØRSTE_PERSONRAD() As Long
+    FØRSTE_PERSONRAD = Worksheets(ARK_PLAN).Range("PersonHeader").Row + 1
 End Property
 
 Public Property Get FJERN_TOMME_UNDERRADER() As Boolean
@@ -22,18 +22,18 @@ Public Property Get FJERN_TOMME_UNDERRADER() As Boolean
 End Property
 ' =============================================
 '
-'  v3.4 � Dynamisk versjon med Named Ranges
+'  v3.4 - Dynamisk versjon med Named Ranges
 '  Bruker PersonHeader og FirstDate
 '  Legger alltid tilbake heltrukken toppkant over hele raden
 '  Auto-slett tomme rader, auto-flytt opp aktivitet
 '
-Public Sub FjernAktivitetP�Markering()
+Public Sub FjernAktivitetPåMarkering()
     Dim ws As Worksheet
     Dim sel As Range, area As Range, rng As Range
     Dim lastDatoCol As Long
     Dim r As Long, c As Long
     Dim hovedRad As Long
-    Dim ber�rteHovedrader As Object
+    Dim berørteHovedrader As Object
 
     On Error Resume Next
     Set ws = ThisWorkbook.Worksheets(ARK_PLAN)
@@ -44,7 +44,7 @@ Public Sub FjernAktivitetP�Markering()
     End If
 
     If TypeName(Selection) <> "Range" Then
-        MsgBox "Marker et omr�de i '" & ARK_PLAN & "' f�rst.", vbExclamation
+        MsgBox "Marker et område i '" & ARK_PLAN & "' først.", vbExclamation
         Exit Sub
     End If
     Set sel = Intersect(Selection, ws.UsedRange)
@@ -53,40 +53,40 @@ Public Sub FjernAktivitetP�Markering()
         Exit Sub
     End If
 
-    Set ber�rteHovedrader = CreateObject("Scripting.Dictionary")
+    Set berørteHovedrader = CreateObject("Scripting.Dictionary")
 
     Application.ScreenUpdating = False
     lastDatoCol = SisteDatoKolonne(ws, datoRad)
-    If lastDatoCol < F�RSTE_DATAKOL Then lastDatoCol = F�RSTE_DATAKOL
+    If lastDatoCol < FØRSTE_DATAKOL Then lastDatoCol = FØRSTE_DATAKOL
 
     For Each area In sel.Areas
-        Set rng = Intersect(area, ws.Range(ws.Cells(F�RSTE_PERSONRAD, F�RSTE_DATAKOL), _
+        Set rng = Intersect(area, ws.Range(ws.Cells(FØRSTE_PERSONRAD, FØRSTE_DATAKOL), _
                                            ws.Cells(ws.Rows.Count, lastDatoCol)))
         If Not rng Is Nothing Then
             For r = rng.Row To rng.Row + rng.Rows.Count - 1
                 hovedRad = FinnHovedRad(ws, r)
-                If hovedRad >= F�RSTE_PERSONRAD Then ber�rteHovedrader(CStr(hovedRad)) = True
+                If hovedRad >= FØRSTE_PERSONRAD Then berørteHovedrader(CStr(hovedRad)) = True
                 For c = rng.Column To rng.Column + rng.Columns.Count - 1
-                    If c >= F�RSTE_DATAKOL And c <= lastDatoCol Then
+                    If c >= FØRSTE_DATAKOL And c <= lastDatoCol Then
                         RyddCelleTilHvitMedGrid ws, r, c
                     End If
                 Next c
 
-                ' Trekk toppkant som �n sammenhengende linje over hele raden
-                TrekkToppkantHeleRaden ws, r, F�RSTE_DATAKOL, lastDatoCol
+                ' Trekk toppkant som én sammenhengende linje over hele raden
+                TrekkToppkantHeleRaden ws, r, FØRSTE_DATAKOL, lastDatoCol
 
                 If FJERN_TOMME_UNDERRADER Then SlettTomUnderRadHvisAktuell ws, r, hovedRad
             Next r
         End If
     Next area
 
-    ' Etter rydding: komprimer hver ber�rt personblokk
+    ' Etter rydding: komprimer hver berørt personblokk
     Dim k As Variant
-    For Each k In ber�rteHovedrader.Keys
+    For Each k In berørteHovedrader.Keys
         KomprimerBlokkFlyttOppHvisEnesteUnder ws, CLng(k)
     Next k
 
-    ' Sikre at alle person-skillelinjer er p� plass
+    ' Sikre at alle person-skillelinjer er på plass
     GjenopprettPersonSkiller ws
 
     Application.ScreenUpdating = True
@@ -105,7 +105,7 @@ Private Sub KomprimerBlokkFlyttOppHvisEnesteUnder(ws As Worksheet, ByVal hovedRa
     lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
     lastCol = SisteDatoKolonne(ws, datoRad)
 
-    ' Finn enden av blokken (p�f�lgende rader med tom kol A)
+    ' Finn enden av blokken (påfølgende rader med tom kol A)
     For r = hovedRad + 1 To lastRow
         If Len(Trim$(ws.Cells(r, 1).Value)) = 0 Then
             endBlokk = r
@@ -124,13 +124,13 @@ Private Sub KomprimerBlokkFlyttOppHvisEnesteUnder(ws As Worksheet, ByVal hovedRa
         End If
     Next r
 
-    ' Hvis hovedraden er tom og det finnes n�yaktig �n under-rad med aktivitet � flytt opp
+    ' Hvis hovedraden er tom og det finnes nåyaktig én under-rad med aktivitet - flytt opp
     If Not RadHarAktivitet(ws, hovedRad) And antUnderMedAktivitet = 1 Then
         FlyttRadInnholdOpp ws, underMedAktivitet, hovedRad
         ws.Rows(underMedAktivitet).Delete
     End If
 
-    ' Etter sletting: fjern eventuelle gjenv�rende tomme under-rader
+    ' Etter sletting: fjern eventuelle gjenværende tomme under-rader
     Dim slettet As Boolean: slettet = False
     For r = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row To hovedRad + 1 Step -1
         If Len(Trim$(ws.Cells(r, 1).Value)) = 0 Then
@@ -141,7 +141,7 @@ Private Sub KomprimerBlokkFlyttOppHvisEnesteUnder(ws As Worksheet, ByVal hovedRa
         End If
     Next r
     
-    ' KRITISK FIX: Hvis vi slettet noen under-rader, gjenopprett toppkant p� neste rad
+    ' KRITISK FIX: Hvis vi slettet noen under-rader, gjenopprett toppkant på neste rad
     If slettet Then
         Dim nesteRad As Long
         ' Finn neste rad med navn (neste person)
@@ -155,7 +155,7 @@ Private Sub KomprimerBlokkFlyttOppHvisEnesteUnder(ws As Worksheet, ByVal hovedRa
         ' Hvis vi fant en neste person, gjenopprett toppkanten
         If nesteRad > hovedRad Then
             Dim rngTop As Range
-            Set rngTop = ws.Range(ws.Cells(nesteRad, F�RSTE_DATAKOL), ws.Cells(nesteRad, lastCol))
+            Set rngTop = ws.Range(ws.Cells(nesteRad, FØRSTE_DATAKOL), ws.Cells(nesteRad, lastCol))
             With rngTop.Borders(xlEdgeTop)
                 .LineStyle = xlContinuous
                 .Weight = xlThin
@@ -170,8 +170,8 @@ Private Sub FlyttRadInnholdOpp(ws As Worksheet, ByVal srcRad As Long, ByVal dstR
     lastCol = SisteDatoKolonne(ws, datoRad)
 
     ' Kopier ALT innhold/format fra srcRad (dato-kolonner) til dstRad
-    ws.Range(ws.Cells(srcRad, F�RSTE_DATAKOL), ws.Cells(srcRad, lastCol)).Copy
-    ws.Cells(dstRad, F�RSTE_DATAKOL).PasteSpecial xlPasteAll
+    ws.Range(ws.Cells(srcRad, FØRSTE_DATAKOL), ws.Cells(srcRad, lastCol)).Copy
+    ws.Cells(dstRad, FØRSTE_DATAKOL).PasteSpecial xlPasteAll
     Application.CutCopyMode = False
 End Sub
 
@@ -213,7 +213,7 @@ Private Sub RyddCelleTilHvitMedGrid(ws As Worksheet, ByVal r As Long, ByVal c As
     cel.VerticalAlignment = xlCenter
     cel.WrapText = False
 
-    ' 2) Sett bakgrunn til ren hvit (ingen m�nster)
+    ' 2) Sett bakgrunn til ren hvit (ingen månster)
     With cel.Interior
         .Pattern = xlSolid
         .TintAndShade = 0
@@ -221,7 +221,7 @@ Private Sub RyddCelleTilHvitMedGrid(ws As Worksheet, ByVal r As Long, ByVal c As
         .PatternTintAndShade = 0
     End With
 
-    ' 3) Sl� av diagonale kanter (for � hindre X-kryss)
+    ' 3) Slå av diagonale kanter (for - hindre X-kryss)
     cel.Borders(xlDiagonalDown).LineStyle = xlLineStyleNone
     cel.Borders(xlDiagonalUp).LineStyle = xlLineStyleNone
 
@@ -284,7 +284,7 @@ End Sub
 Private Function RadErTomIAlleDatoKolonner(ws As Worksheet, ByVal r As Long) As Boolean
     Dim lastCol As Long, c As Long, cel As Range
     lastCol = SisteDatoKolonne(ws, datoRad)
-    For c = F�RSTE_DATAKOL To lastCol
+    For c = FØRSTE_DATAKOL To lastCol
         Set cel = ws.Cells(r, c)
         If Len(Trim$(cel.Value)) > 0 Then Exit Function
         If cel.Interior.ColorIndex <> xlColorIndexNone Then
@@ -297,7 +297,7 @@ End Function
 Private Function RadHarAktivitet(ws As Worksheet, ByVal r As Long) As Boolean
     Dim lastCol As Long, c As Long, cel As Range
     lastCol = SisteDatoKolonne(ws, datoRad)
-    For c = F�RSTE_DATAKOL To lastCol
+    For c = FØRSTE_DATAKOL To lastCol
         Set cel = ws.Cells(r, c)
         If Len(Trim$(cel.Value)) > 0 Then RadHarAktivitet = True: Exit Function
         If cel.Interior.ColorIndex <> xlColorIndexNone Then
@@ -311,7 +311,7 @@ End Function
 
 Private Function FinnHovedRad(ws As Worksheet, ByVal rad As Long) As Long
     Dim r As Long
-    For r = rad To F�RSTE_PERSONRAD Step -1
+    For r = rad To FØRSTE_PERSONRAD Step -1
         If Len(Trim$(ws.Cells(r, 1).Value)) > 0 Then FinnHovedRad = r: Exit Function
     Next r
     FinnHovedRad = rad
@@ -327,12 +327,12 @@ Private Sub GjenopprettPersonSkiller(ws As Worksheet)
     lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
     lastCol = SisteDatoKolonne(ws, datoRad)
     
-    ' G� gjennom alle rader og finn personer (navn i kolonne A)
-    For r = F�RSTE_PERSONRAD To lastRow
+    ' Gå gjennom alle rader og finn personer (navn i kolonne A)
+    For r = FØRSTE_PERSONRAD To lastRow
         If Len(Trim$(ws.Cells(r, 1).Value)) > 0 Then
             ' Dette er en personrad - sett toppkant
             Dim rngTop As Range
-            Set rngTop = ws.Range(ws.Cells(r, F�RSTE_DATAKOL), ws.Cells(r, lastCol))
+            Set rngTop = ws.Range(ws.Cells(r, FØRSTE_DATAKOL), ws.Cells(r, lastCol))
             With rngTop.Borders(xlEdgeTop)
                 .LineStyle = xlContinuous
                 .Weight = xlThin

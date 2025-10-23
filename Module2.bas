@@ -10,7 +10,7 @@ Private Const FØRSTE_PERSONRAD As Long = 16
 Private Const GRID_WEIGHT As Long = xlHairline   ' bruk xlThin for sterkere ruter
 ' =============================================
 
-' RYDD: fjerner alt i valgt spenn, tegner rutenett p� nytt, sletter tomme under-rader
+' RYDD: fjerner alt i valgt spenn, tegner rutenett på nytt, sletter tomme under-rader
 Public Sub RyddBlokkForPerson()
     Dim ws As Worksheet
     Dim personCell As Range
@@ -60,7 +60,7 @@ Public Sub RyddBlokkForPerson()
     
     Application.ScreenUpdating = False
     
-    ' 1) Rydd valgt spenn p� hele blokken
+    ' 1) Rydd valgt spenn på hele blokken
     For r = blockStart To blockEnd
         Set rng = ws.Range(ws.Cells(r, startCol), ws.Cells(r, sluttCol))
 
@@ -77,7 +77,7 @@ Public Sub RyddBlokkForPerson()
         ws.Cells(r, startCol).ClearComments
         On Error GoTo 0
         
-        ' Tegn rutenett p� nytt (tynne inndelingslinjer)
+        ' Tegn rutenett på nytt (tynne inndelingslinjer)
         With rng.Borders
             .LineStyle = xlContinuous
             .ColorIndex = xlColorIndexAutomatic
@@ -85,7 +85,7 @@ Public Sub RyddBlokkForPerson()
         End With
     Next r
     
-    ' 2) Gjenopprett overordnet formatering p� under-rader fra hovedraden
+    ' 2) Gjenopprett overordnet formatering på under-rader fra hovedraden
     If blockEnd > blockStart Then
         ws.Rows(blockStart).Copy
         ws.Range(ws.Rows(blockStart + 1), ws.Rows(blockEnd)).PasteSpecial xlPasteFormats
