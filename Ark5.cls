@@ -60,6 +60,9 @@ Private Const DEBUG_MODE As Boolean = True
 Private Sub Worksheet_Change(ByVal Target As Range)
     On Error GoTo Slutt
 
+    ' STEG 0: Sjekk om events er disabled (f.eks. under refresh)
+    If Not Application.EnableEvents Then Exit Sub
+
     ' STEG 1: Sjekk om vi allerede behandler (unngå rekursjon)
     If behandlerEndring Then Exit Sub
 
