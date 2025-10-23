@@ -1,4 +1,3 @@
-Attribute VB_Name = "Module5"
 Option Explicit
 
 ' ==============================================================================
@@ -18,10 +17,14 @@ Option Explicit
 ' ==============================================================================
 
 ' ===== WINDOWS API FOR CTRL-KLIKK DETEKSJON =====
-#If VBA7 Then
+#If Win64 Then
     Public Declare PtrSafe Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
 #Else
-    Public Declare Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
+    #If VBA7 Then
+        Public Declare PtrSafe Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
+    #Else
+        Public Declare Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
+    #End If
 #End If
 
 ' ----------------------------------------------------------------------------
