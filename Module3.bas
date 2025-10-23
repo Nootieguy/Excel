@@ -367,7 +367,8 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
             If Len(celVal) > 0 And cel.Font.Bold Then
                 ' Ekstraher aktivitetskode (forste ord for "--")
                 aktivKode = ExtractAktivitetsKode(celVal)
-                kommentar = ExtractKommentar(celVal)
+                Dim rawKommentar As String
+                rawKommentar = ExtractKommentar(celVal)
 
                 ' HYBRID-MODUS: Sjekk om cellen er merged eller ikke-merged
                 If cel.MergeCells Then
@@ -397,6 +398,15 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
                         ' Slaa opp aktivitetsbeskrivelse
                         If Not LookupAktivitet(wsTyp, aktivKode, aktivBeskr, aktivFarge) Then
                             aktivBeskr = ""
+                        End If
+
+                        ' VIKTIG: Sjekk om rawKommentar er beskrivelsen eller en ekte kommentar
+                        If StrComp(rawKommentar, aktivBeskr, vbTextCompare) = 0 Then
+                            ' Teksten etter " - " er beskrivelsen - ingen ekte kommentar
+                            kommentar = ""
+                        Else
+                            ' Teksten etter " - " er en ekte kommentar
+                            kommentar = rawKommentar
                         End If
 
                         ' Lag unik nokkel (inkluder sluttdato for unikhet)
@@ -466,6 +476,15 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
                         ' Slaa opp beskrivelse
                         If Not LookupAktivitet(wsTyp, aktivKode, aktivBeskr, aktivFarge) Then
                             aktivBeskr = ""
+                        End If
+
+                        ' VIKTIG: Sjekk om rawKommentar er beskrivelsen eller en ekte kommentar
+                        If StrComp(rawKommentar, aktivBeskr, vbTextCompare) = 0 Then
+                            ' Teksten etter " - " er beskrivelsen - ingen ekte kommentar
+                            kommentar = ""
+                        Else
+                            ' Teksten etter " - " er en ekte kommentar
+                            kommentar = rawKommentar
                         End If
 
                         ' Lag nokkel (inkluder sluttdato for unikhet)
