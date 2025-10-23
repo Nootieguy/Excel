@@ -1,6 +1,3 @@
-Attribute VB_Name = "Module3"
-
-
 Option Explicit
 '
 ' =================== MODUL 5 -- AKTIVITETSOVERSIKT (v1.0) ===================
@@ -402,8 +399,8 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
                             aktivBeskr = ""
                         End If
 
-                        ' Lag unik nokkel
-                        aktKey = personNavn & "|" & aktivKode & "|" & Format(startDato, "yyyy-mm-dd")
+                        ' Lag unik nokkel (inkluder sluttdato for unikhet)
+                        aktKey = personNavn & "|" & aktivKode & "|" & Format(startDato, "yyyy-mm-dd") & "|" & Format(sluttDato, "yyyy-mm-dd")
 
                         ' Legg til i dictionary
                         If Not aktiviteter.exists(aktKey) Then
@@ -471,8 +468,8 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
                             aktivBeskr = ""
                         End If
 
-                        ' Lag nokkel
-                        aktKey = personNavn & "|" & aktivKode & "|" & Format(startDato, "yyyy-mm-dd")
+                        ' Lag nokkel (inkluder sluttdato for unikhet)
+                        aktKey = personNavn & "|" & aktivKode & "|" & Format(startDato, "yyyy-mm-dd") & "|" & Format(sluttDato, "yyyy-mm-dd")
 
                         ' Legg til
                         If Not aktiviteter.exists(aktKey) Then

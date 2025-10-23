@@ -1,5 +1,3 @@
-Attribute VB_Name = "Module4"
-
 Option Explicit
 '
 ' =================== MODUL 4 - UVALGTE (v4.8 - DYNAMISK) ===================
