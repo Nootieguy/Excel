@@ -115,7 +115,7 @@ End Sub
 ' Returnerer Dictionary med info hvis det er en kant, ellers Nothing
 ' ----------------------------------------------------------------------------
 Private Function ErKantAvMergedAktivitet(wsP As Worksheet, Target As Range) As Object
-    On Error Resume Next
+    On Error GoTo ErrHandler
 
     Debug.Print "  ErKantAvMergedAktivitet: Sjekker " & Target.Address
 
@@ -182,6 +182,11 @@ Private Function ErKantAvMergedAktivitet(wsP As Worksheet, Target As Range) As O
     info("Farge") = ma.Interior.Color
 
     Set ErKantAvMergedAktivitet = info
+    Exit Function
+
+ErrHandler:
+    Debug.Print "    → FEIL i ErKantAvMergedAktivitet: " & Err.Description & " (Nr: " & Err.Number & ")"
+    Set ErKantAvMergedAktivitet = Nothing
 End Function
 
 ' ----------------------------------------------------------------------------
