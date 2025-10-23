@@ -399,13 +399,21 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
                             aktivBeskr = ""
                         End If
 
+                        ' DEBUG KOMMENTAR-LOGIKK
+                        Debug.Print "  Celle: " & celVal
+                        Debug.Print "  Kode: " & aktivKode
+                        Debug.Print "  rawKommentar: [" & rawKommentar & "]"
+                        Debug.Print "  aktivBeskr: [" & aktivBeskr & "]"
+
                         ' VIKTIG: Sjekk om rawKommentar er beskrivelsen eller en ekte kommentar
                         If StrComp(rawKommentar, aktivBeskr, vbTextCompare) = 0 Then
                             ' Teksten etter " - " er beskrivelsen - ingen ekte kommentar
                             kommentar = ""
+                            Debug.Print "  → Match! Ingen kommentar (standard-beskrivelse)"
                         Else
                             ' Teksten etter " - " er en ekte kommentar
                             kommentar = rawKommentar
+                            Debug.Print "  → Ikke match! Kommentar: [" & kommentar & "]"
                         End If
 
                         ' Lag unik nokkel (inkluder sluttdato for unikhet)
@@ -477,13 +485,21 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
                             aktivBeskr = ""
                         End If
 
+                        ' DEBUG KOMMENTAR-LOGIKK (ikke-merged)
+                        Debug.Print "  Celle (ikke-merged): " & celVal
+                        Debug.Print "  Kode: " & aktivKode
+                        Debug.Print "  rawKommentar: [" & rawKommentar & "]"
+                        Debug.Print "  aktivBeskr: [" & aktivBeskr & "]"
+
                         ' VIKTIG: Sjekk om rawKommentar er beskrivelsen eller en ekte kommentar
                         If StrComp(rawKommentar, aktivBeskr, vbTextCompare) = 0 Then
                             ' Teksten etter " - " er beskrivelsen - ingen ekte kommentar
                             kommentar = ""
+                            Debug.Print "  → Match! Ingen kommentar (standard-beskrivelse)"
                         Else
                             ' Teksten etter " - " er en ekte kommentar
                             kommentar = rawKommentar
+                            Debug.Print "  → Ikke match! Kommentar: [" & kommentar & "]"
                         End If
 
                         ' Lag nokkel (inkluder sluttdato for unikhet)
@@ -519,45 +535,80 @@ End Sub
 ' Ekstraher aktivitetskode fra celle-tekst (for "--")
 Private Function ExtractAktivitetsKode(txt As String) As String
     Dim pos As Long
-    ' Søk etter " - " separator (med mellomrom)
+    ' Søk etter " - " separator (regular hyphen)
     pos = InStr(txt, " - ")
     If pos > 0 Then
         ExtractAktivitetsKode = Trim$(Left$(txt, pos - 1))
+        Exit Function
+    End If
+
+    ' Søk etter " – " (en-dash U+2013)
+    pos = InStr(txt, " " & ChrW(8211) & " ")
+    If pos > 0 Then
+        ExtractAktivitetsKode = Trim$(Left$(txt, pos - 1))
+        Exit Function
+    End If
+
+    ' Søk etter " — " (em-dash U+2014)
+    pos = InStr(txt, " " & ChrW(8212) & " ")
+    If pos > 0 Then
+        ExtractAktivitetsKode = Trim$(Left$(txt, pos - 1))
+        Exit Function
+    End If
+
+    ' Søk etter " -- " (dobbel hyphen)
+    pos = InStr(txt, " -- ")
+    If pos > 0 Then
+        ExtractAktivitetsKode = Trim$(Left$(txt, pos - 1))
+        Exit Function
+    End If
+
+    ' Hvis ingen separator, ta første ord
+    pos = InStr(txt, " ")
+    If pos > 0 Then
+        ExtractAktivitetsKode = Trim$(Left$(txt, pos - 1))
     Else
-        ' Fallback: søk etter " -- " (dobbel separator)
-        pos = InStr(txt, " -- ")
-        If pos > 0 Then
-            ExtractAktivitetsKode = Trim$(Left$(txt, pos - 1))
-        Else
-            ' Hvis ingen separator, ta første ord
-            pos = InStr(txt, " ")
-            If pos > 0 Then
-                ExtractAktivitetsKode = Trim$(Left$(txt, pos - 1))
-            Else
-                ExtractAktivitetsKode = Trim$(txt)
-            End If
-        End If
+        ExtractAktivitetsKode = Trim$(txt)
     End If
 End Function
 
 ' Ekstraher kommentar fra celle-tekst (etter " - " eller " -- ")
 Private Function ExtractKommentar(txt As String) As String
     Dim pos As Long
-    ' Søk etter " - " separator (standard)
+    ' Søk etter " - " separator (regular hyphen)
     pos = InStr(txt, " - ")
     If pos > 0 Then
         ' Hopp over " - " (3 tegn: mellomrom + bindestrek + mellomrom)
         ExtractKommentar = Trim$(Mid$(txt, pos + 3))
-    Else
-        ' Fallback: søk etter " -- " (dobbel separator)
-        pos = InStr(txt, " -- ")
-        If pos > 0 Then
-            ' Hopp over " -- " (4 tegn)
-            ExtractKommentar = Trim$(Mid$(txt, pos + 4))
-        Else
-            ExtractKommentar = ""
-        End If
+        Exit Function
     End If
+
+    ' Søk etter " – " (en-dash U+2013)
+    pos = InStr(txt, " " & ChrW(8211) & " ")
+    If pos > 0 Then
+        ' Hopp over " – " (3 tegn: mellomrom + en-dash + mellomrom)
+        ExtractKommentar = Trim$(Mid$(txt, pos + 3))
+        Exit Function
+    End If
+
+    ' Søk etter " — " (em-dash U+2014)
+    pos = InStr(txt, " " & ChrW(8212) & " ")
+    If pos > 0 Then
+        ' Hopp over " — " (3 tegn: mellomrom + em-dash + mellomrom)
+        ExtractKommentar = Trim$(Mid$(txt, pos + 3))
+        Exit Function
+    End If
+
+    ' Søk etter " -- " (dobbel hyphen)
+    pos = InStr(txt, " -- ")
+    If pos > 0 Then
+        ' Hopp over " -- " (4 tegn)
+        ExtractKommentar = Trim$(Mid$(txt, pos + 4))
+        Exit Function
+    End If
+
+    ' Ingen separator funnet
+    ExtractKommentar = ""
 End Function
 
 ' Fyll tabellen fra aktiviteter-dictionary (sortert)
