@@ -416,8 +416,8 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
                             Debug.Print "  → Ikke match! Kommentar: [" & kommentar & "]"
                         End If
 
-                        ' Lag unik nokkel (inkluder sluttdato for unikhet)
-                        aktKey = personNavn & "|" & aktivKode & "|" & Format(startDato, "yyyy-mm-dd") & "|" & Format(sluttDato, "yyyy-mm-dd")
+                        ' Lag unik nokkel (inkluder sluttdato og kommentar for unikhet)
+                        aktKey = personNavn & "|" & aktivKode & "|" & Format(startDato, "yyyy-mm-dd") & "|" & Format(sluttDato, "yyyy-mm-dd") & "|" & kommentar
 
                         ' Legg til i dictionary
                         If Not aktiviteter.exists(aktKey) Then
@@ -502,8 +502,8 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
                             Debug.Print "  → Ikke match! Kommentar: [" & kommentar & "]"
                         End If
 
-                        ' Lag nokkel (inkluder sluttdato for unikhet)
-                        aktKey = personNavn & "|" & aktivKode & "|" & Format(startDato, "yyyy-mm-dd") & "|" & Format(sluttDato, "yyyy-mm-dd")
+                        ' Lag nokkel (inkluder sluttdato og kommentar for unikhet)
+                        aktKey = personNavn & "|" & aktivKode & "|" & Format(startDato, "yyyy-mm-dd") & "|" & Format(sluttDato, "yyyy-mm-dd") & "|" & kommentar
 
                         ' Legg til
                         If Not aktiviteter.exists(aktKey) Then
