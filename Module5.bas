@@ -3,21 +3,203 @@ Option Explicit
 ' ==============================================================================
 ' MODULE 5 - RESIZE-FUNKSJONALITET FOR MERGED AKTIVITETER
 ' ==============================================================================
-' Håndterer dobbeltklikk resize av merged aktiviteter i Planlegger-arket
+' Håndterer kant-klikk drag resize av merged aktiviteter i Planlegger-arket
 ' Automatisk overlapp-håndtering og rutenett-restore
 '
 ' BRUK:
-'   Dobbeltklikk på målcellen for å resize nærmeste aktivitet
+'   1. Klikk på KANTEN av en merged aktivitet (første eller siste kolonne)
+'   2. Klikk på målcellen hvor du vil kanten skal flyttes
 '
 ' FUNKSJONER:
-'   - HaandterDobbeltklikk: Hovedfunksjon som håndterer dobbeltklikk
-'   - FinnNaermesteMergedAktivitet: Finner aktivitet å resize
-'   - ResizeMergedAktivitet: Utfører resize med rutenett-restore
-'   - HaandterOverlappVedResize: Håndterer kolliderende aktiviteter
+'   - HaandterCelleKlikk: Hovedfunksjon for to-stegs resize
+'   - ErKantAvMergedAktivitet: Sjekker om klikk er på kant
+'   - VisResizeModus: Visuell feedback for resize-modus
+'   - HaandterDobbeltklikk: Legacy (kan fjernes senere)
 ' ==============================================================================
 
+' ===== RESIZE STATE =====
+Private resizeModus As Boolean
+Private resizeRad As Long
+Private resizeStartKol As Long
+Private resizeSluttKol As Long
+Private resizeVenstre As Boolean ' True = resize venstre kant, False = høyre kant
+Private resizeTekst As String
+Private resizeFarge As Long
+
 ' ----------------------------------------------------------------------------
-' FUNKSJON: HaandterDobbeltklikk
+' FUNKSJON: HaandterCelleKlikk (To-stegs resize)
+' ----------------------------------------------------------------------------
+' STEG 1: Klikk på kant av aktivitet → Aktiverer resize-modus
+' STEG 2: Klikk på målcelle → Utfører resize
+' ----------------------------------------------------------------------------
+Public Sub HaandterCelleKlikk(wsP As Worksheet, Target As Range)
+    On Error GoTo ErrHandler
+
+    Debug.Print "=== HaandterCelleKlikk: " & Target.Address & " ==="
+
+    If Not resizeModus Then
+        ' STEG 1: Sjekk om brukeren klikket på en kant
+        Dim kantInfo As Object
+        Set kantInfo = ErKantAvMergedAktivitet(wsP, Target)
+
+        If Not kantInfo Is Nothing Then
+            ' Aktivér resize-modus
+            resizeModus = True
+            resizeRad = kantInfo("Rad")
+            resizeStartKol = kantInfo("StartKol")
+            resizeSluttKol = kantInfo("SluttKol")
+            resizeVenstre = kantInfo("VenstreKant")
+            resizeTekst = kantInfo("Tekst")
+            resizeFarge = kantInfo("Farge")
+
+            ' Visuell feedback
+            Call VisResizeModus(wsP, True)
+
+            Dim kantNavn As String
+            kantNavn = IIf(resizeVenstre, "venstre", "høyre")
+            Application.StatusBar = "RESIZE-MODUS: Klikk på målcellen for å flytte " & kantNavn & " kant"
+            Debug.Print "Resize-modus aktivert: " & kantNavn & " kant av aktivitet i rad " & resizeRad
+        End If
+    Else
+        ' STEG 2: Brukeren klikket på målcelle - utfør resize
+        Dim malKol As Long
+        malKol = Target.Column
+
+        Debug.Print "Målcelle: kolonne " & malKol
+
+        ' Beregn nye dimensjoner
+        Dim nyStartKol As Long, nySluttKol As Long
+        If resizeVenstre Then
+            ' Resize venstre kant
+            nyStartKol = malKol
+            nySluttKol = resizeSluttKol
+        Else
+            ' Resize høyre kant
+            nyStartKol = resizeStartKol
+            nySluttKol = malKol
+        End If
+
+        ' Sjekk at det er en gyldig endring
+        If nyStartKol < nySluttKol And nyStartKol <> resizeStartKol Or nySluttKol <> resizeSluttKol Then
+            ' Håndter overlapp
+            Call HaandterOverlappVedResize(wsP, resizeRad, nyStartKol, nySluttKol, resizeStartKol, resizeSluttKol)
+
+            ' Utfør resize
+            Call ResizeMergedAktivitet(wsP, resizeRad, resizeStartKol, resizeSluttKol, nyStartKol, nySluttKol, resizeTekst, resizeFarge)
+
+            Application.StatusBar = "Aktivitet resized til " & (nySluttKol - nyStartKol + 1) & " dager"
+            Debug.Print "Resize fullført!"
+        Else
+            Application.StatusBar = "Ugyldig resize - avbrutt"
+            Debug.Print "Ugyldig resize (nyStart=" & nyStartKol & ", nyS lutt=" & nySluttKol & ")"
+        End If
+
+        ' Deaktivér resize-modus
+        Call VisResizeModus(wsP, False)
+        resizeModus = False
+    End If
+
+    Exit Sub
+
+ErrHandler:
+    Debug.Print "FEIL i HaandterCelleKlikk: " & Err.Description
+    resizeModus = False
+    Call VisResizeModus(wsP, False)
+    MsgBox "Feil ved resize: " & Err.Description, vbCritical
+End Sub
+
+' ----------------------------------------------------------------------------
+' FUNKSJON: ErKantAvMergedAktivitet
+' ----------------------------------------------------------------------------
+' Sjekker om en celle er kanten (første eller siste kolonne) av en merged aktivitet
+' Returnerer Dictionary med info hvis det er en kant, ellers Nothing
+' ----------------------------------------------------------------------------
+Private Function ErKantAvMergedAktivitet(wsP As Worksheet, Target As Range) As Object
+    On Error Resume Next
+
+    Dim cel As Range
+    Set cel = Target.Cells(1, 1) ' Første celle hvis multi-select
+
+    ' Sjekk om cellen er merged
+    If Not cel.MergeCells Then
+        Set ErKantAvMergedAktivitet = Nothing
+        Exit Function
+    End If
+
+    Dim ma As Range
+    Set ma = cel.MergeArea
+
+    ' Sjekk om det er en aktivitet (har farge og fet tekst)
+    If ma.Interior.Color = RGB(255, 255, 255) Or _
+       ma.Interior.ColorIndex = xlColorIndexNone Or _
+       Not ma.Font.Bold Or _
+       Len(Trim$(ma.Value)) = 0 Then
+        Set ErKantAvMergedAktivitet = Nothing
+        Exit Function
+    End If
+
+    ' Sjekk om dette er første eller siste kolonne i merged area
+    Dim startKol As Long, sluttKol As Long, klikketKol As Long
+    startKol = ma.Column
+    sluttKol = ma.Column + ma.Columns.Count - 1
+    klikketKol = cel.Column
+
+    Dim erVenstre As Boolean, erHoyre As Boolean
+    erVenstre = (klikketKol = startKol)
+    erHoyre = (klikketKol = sluttKol)
+
+    If Not erVenstre And Not erHoyre Then
+        ' Ikke en kant
+        Set ErKantAvMergedAktivitet = Nothing
+        Exit Function
+    End If
+
+    ' Det er en kant! Returner info
+    Dim info As Object
+    Set info = CreateObject("Scripting.Dictionary")
+    info("Rad") = ma.Row
+    info("StartKol") = startKol
+    info("SluttKol") = sluttKol
+    info("VenstreKant") = erVenstre
+    info("Tekst") = CStr(ma.Value)
+    info("Farge") = ma.Interior.Color
+
+    Set ErKantAvMergedAktivitet = info
+End Function
+
+' ----------------------------------------------------------------------------
+' FUNKSJON: VisResizeModus
+' ----------------------------------------------------------------------------
+' Visuell feedback når resize-modus er aktiv
+' ----------------------------------------------------------------------------
+Private Sub VisResizeModus(wsP As Worksheet, aktiv As Boolean)
+    On Error Resume Next
+
+    If aktiv Then
+        ' Highlight kanten som skal resizes
+        Dim kantKol As Long
+        If resizeVenstre Then
+            kantKol = resizeStartKol
+        Else
+            kantKol = resizeSluttKol
+        End If
+
+        With wsP.Cells(resizeRad, kantKol)
+            .Borders(xlEdgeLeft).LineStyle = xlContinuous
+            .Borders(xlEdgeLeft).Weight = xlThick
+            .Borders(xlEdgeLeft).Color = RGB(255, 0, 0) ' Rød
+            .Borders(xlEdgeRight).LineStyle = xlContinuous
+            .Borders(xlEdgeRight).Weight = xlThick
+            .Borders(xlEdgeRight).Color = RGB(255, 0, 0)
+        End With
+    Else
+        ' Fjern highlight (reset til merged cell sin original border)
+        Application.StatusBar = False
+    End If
+End Sub
+
+' ----------------------------------------------------------------------------
+' FUNKSJON: HaandterDobbeltklikk (LEGACY - KAN FJERNES)
 ' ----------------------------------------------------------------------------
 ' Håndterer dobbeltklikk for å resize merged aktiviteter
 ' Brukeren dobbeltklikker på målcellen (hvor aktiviteten skal utvides til)
