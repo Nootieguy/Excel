@@ -2107,45 +2107,46 @@ Public Sub FlyttAktivitetTilNyPerson(gammelPerson As String, nyPerson As String,
         MsgBox "Finner ikke ny person '" & nyPerson & "' i Planlegger.", vbExclamation
         Exit Sub
     End If
-    
-    ' Finn aktiviteten hos gammel person
+
+    ' VIKTIG: Finn kolonner for datoer FORST (trenger startCol for aa finne aktiviteten!)
+    startCol = FinnDatoKolonne(wsP, startDato, forsteDatoKol, datoRad)
+    sluttCol = FinnDatoKolonne(wsP, sluttDato, forsteDatoKol, datoRad)
+
+    If startCol = 0 Or sluttCol = 0 Then
+        MsgBox "Datoene finnes ikke i Planlegger.", vbExclamation
+        Exit Sub
+    End If
+
+    ' Finn aktiviteten hos gammel person (i riktig kolonne!)
     blockEnd = gammelPersonRow
     Do While blockEnd < wsP.Rows.Count
         If Len(Trim$(wsP.Cells(blockEnd + 1, 1).Value)) > 0 Then Exit Do
         blockEnd = blockEnd + 1
     Loop
-    
+
     funnet = False
     For r = gammelPersonRow To blockEnd
-        If Len(Trim$(wsP.Cells(r, forsteDatoKol).Value)) > 0 And wsP.Cells(r, forsteDatoKol).Font.Bold Then
-            If InStr(1, wsP.Cells(r, forsteDatoKol).Value, kode, vbTextCompare) > 0 Then
+        ' Sok i startCol (ikke forsteDatoKol!)
+        If Len(Trim$(wsP.Cells(r, startCol).Value)) > 0 Then
+            If InStr(1, wsP.Cells(r, startCol).Value, kode, vbTextCompare) > 0 Then
                 gammelRad = r
                 funnet = True
                 Exit For
             End If
         End If
     Next r
-    
+
     If Not funnet Then
         MsgBox "Finner ikke aktivitet '" & kode & "' hos '" & gammelPerson & "'.", vbExclamation
         Exit Sub
     End If
-    
+
     ' Hent aktivitetsinfo
     If Not LookupAktivitet(wsTyp, kode, beskrivelse, farge) Then
         MsgBox "Finner ikke aktivitetskode '" & kode & "'.", vbExclamation
         Exit Sub
     End If
-    
-    ' Finn kolonner for datoer
-    startCol = FinnDatoKolonne(wsP, startDato, forsteDatoKol, datoRad)
-    sluttCol = FinnDatoKolonne(wsP, sluttDato, forsteDatoKol, datoRad)
-    
-    If startCol = 0 Or sluttCol = 0 Then
-        MsgBox "Datoene finnes ikke i Planlegger.", vbExclamation
-        Exit Sub
-    End If
-    
+
     ' STEG 1: Rydd aktiviteten fra gammel person
     For c = startCol To sluttCol
         With wsP.Cells(gammelRad, c)
