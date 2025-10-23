@@ -2481,10 +2481,8 @@ Public Sub FlyttAktivitetTilNyPerson(gammelPerson As String, nyPerson As String,
     End If
 
     ' STEG 1: Rydd aktiviteten fra gammel person
-    ' Bruk NullstillCelleTilHvitMedGridU5 for komplett cleanup
-    For c = startCol To sluttCol
-        Call NullstillCelleTilHvitMedGridU5(wsP.Cells(gammelRad, c))
-    Next c
+    ' VIKTIG: Bruk SlettMergedAktivitet for å håndtere merged cells korrekt
+    Call SlettMergedAktivitet(wsP, gammelRad, startCol)
     
     ' STEG 2: Finn ledig rad hos ny person
     Set farger = HentAktivitetsFarger(wsTyp)
