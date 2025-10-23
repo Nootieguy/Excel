@@ -279,17 +279,29 @@ Public Sub AktivitetsOversikt_Refresh()
     lastCol = wsP.Cells(datoRad, wsP.Columns.Count).End(xlToLeft).Column
     lastRow = wsP.Cells(wsP.Rows.Count, 1).End(xlUp).Row
     
+    ' DEBUG: Log start
+    Debug.Print "=== HENT FRA PLANLEGGER STARTER ==="
+    Debug.Print "forsteDatoKol: " & forsteDatoKol
+    Debug.Print "datoRad: " & datoRad
+    Debug.Print "forstePersonRad: " & forstePersonRad
+    Debug.Print "lastRow: " & lastRow
+    Debug.Print "lastCol: " & lastCol
+
     ' Gaa gjennom alle personer i Planlegger
     For personRad = forstePersonRad To lastRow
         personNavn = Trim$(wsP.Cells(personRad, 1).Value)
-        
+
         ' Sjekk om dette er en personrad (ikke tom og ikke preview)
         If Len(personNavn) > 0 And Not (UCase$(personNavn) Like "UVALGTE*") Then
+            Debug.Print "Skanner person: " & personNavn & " (rad " & personRad & ")"
             ' Skann gjennom alle datocolonner for denne personen (og under-rader)
             Call SkannPersonAktiviteter(wsP, wsTyp, personRad, personNavn, _
                                         forsteDatoKol, lastCol, datoRad, aktiviteter)
         End If
     Next personRad
+
+    ' DEBUG: Log antall aktiviteter funnet
+    Debug.Print "Totalt aktiviteter funnet: " & aktiviteter.Count
     
     ' Fyll tabellen fra dictionary (sortert)
     currentRow = TBL_START_ROW
@@ -343,7 +355,7 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
     Dim r As Long, c As Long, startCol As Long, endCol As Long
     Dim celVal As String, aktivKode As String, aktivBeskr As String, aktivFarge As Long
     Dim startDato As Date, sluttDato As Date
-    Dim kommentar As String
+    Dim kommentar As String, rawKommentar As String
     Dim aktKey As String
     Dim blockEnd As Long
     
@@ -367,7 +379,6 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
             If Len(celVal) > 0 And cel.Font.Bold Then
                 ' Ekstraher aktivitetskode (forste ord for "--")
                 aktivKode = ExtractAktivitetsKode(celVal)
-                Dim rawKommentar As String
                 rawKommentar = ExtractKommentar(celVal)
 
                 ' HYBRID-MODUS: Sjekk om cellen er merged eller ikke-merged
@@ -425,6 +436,7 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
                             aktInfo("Forsinkelse") = 0
 
                             aktiviteter.Add aktKey, aktInfo
+                            Debug.Print "  + Aktivitet: " & aktivKode & " (" & Format(startDato, "dd.mm") & "-" & Format(sluttDato, "dd.mm") & ") Kommentar: " & kommentar
                         End If
                     End If
 
@@ -503,6 +515,7 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
                             aktInfo2("Forsinkelse") = 0
 
                             aktiviteter.Add aktKey, aktInfo2
+                            Debug.Print "  + Aktivitet (ikke-merged): " & aktivKode & " (" & Format(startDato, "dd.mm") & "-" & Format(sluttDato, "dd.mm") & ") Kommentar: " & kommentar
                         End If
                     End If
 
