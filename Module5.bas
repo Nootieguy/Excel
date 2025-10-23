@@ -31,9 +31,13 @@ Option Explicit
 Public Sub HaandterCtrlKlikk(wsP As Worksheet, Target As Range)
     On Error GoTo ErrHandler
 
+    Debug.Print "=== HaandterCtrlKlikk START ==="
+
     Dim rad As Long, malKol As Long
     rad = Target.Row
     malKol = Target.Column
+
+    Debug.Print "Rad: " & rad & ", Kolonne: " & malKol
 
     ' Finn nærmeste merged aktivitet i samme rad
     Dim aktivitetInfo As Object
@@ -41,8 +45,11 @@ Public Sub HaandterCtrlKlikk(wsP As Worksheet, Target As Range)
 
     If aktivitetInfo Is Nothing Then
         ' Ingen aktivitet funnet i denne raden
+        Debug.Print "Ingen aktivitet funnet i rad " & rad
         Exit Sub
     End If
+
+    Debug.Print "Aktivitet funnet!"
 
     ' Hent info om aktiviteten
     Dim startKol As Long, sluttKol As Long
@@ -103,6 +110,7 @@ Public Sub HaandterCtrlKlikk(wsP As Worksheet, Target As Range)
     Exit Sub
 
 ErrHandler:
+    Debug.Print "FEIL i HaandterCtrlKlikk: " & Err.Description
     MsgBox "Feil ved resize: " & Err.Description, vbCritical
 End Sub
 

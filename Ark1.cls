@@ -7,7 +7,7 @@ Private Sub Worksheet_Activate()
 End Sub
 
 Private Sub Worksheet_SelectionChange(ByVal Target As Range)
-    On Error Resume Next
+    On Error GoTo ErrHandler
 
     ' Sjekk om Ctrl er holdt nede og brukeren klikket på én celle
     If Target.Cells.Count = 1 Then
@@ -16,10 +16,17 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
         Dim ctrlPressed As Boolean
         ctrlPressed = (Module5.GetAsyncKeyState(17) And &H8000) <> 0
 
+        Debug.Print "SelectionChange: Ctrl pressed = " & ctrlPressed & ", Target = " & Target.Address
+
         If ctrlPressed Then
+            Debug.Print "Kaller Module5.HaandterCtrlKlikk..."
             ' Kall resize-funksjonen
             Call Module5.HaandterCtrlKlikk(Me, Target)
         End If
     End If
+    Exit Sub
+
+ErrHandler:
+    Debug.Print "FEIL i Worksheet_SelectionChange: " & Err.Description
 End Sub
 
