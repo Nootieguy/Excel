@@ -1445,22 +1445,26 @@ Public Sub LagMergedAktivitet(wsP As Worksheet, maalRad As Long, _
                                startCol As Long, sluttCol As Long, _
                                farge As Long, visTekst As String)
     ' STEG 1: Unmerge omraadet forst (hvis noe er merged)
-    Dim rng As Range
-    Set rng = wsP.Range(wsP.Cells(maalRad, startCol), wsP.Cells(maalRad, sluttCol))
-
+    ' VIKTIG: Unmerge hver celle individuelt for aa haandtere mixed merged states
+    Dim c As Long
+    Dim cel As Range
     On Error Resume Next
-    If rng.MergeCells Then
-        rng.UnMerge
-    End If
+    For c = startCol To sluttCol
+        Set cel = wsP.Cells(maalRad, c)
+        If cel.MergeCells Then
+            cel.MergeArea.UnMerge
+        End If
+    Next c
     On Error GoTo 0
 
     ' STEG 2: Rydd alle celler forst (sikrer ren slate)
-    Dim c As Long
     For c = startCol To sluttCol
         Call NullstillCelleTilHvitMedGridU5(wsP.Cells(maalRad, c))
     Next c
 
     ' STEG 3: Merge cellene
+    Dim rng As Range
+    Set rng = wsP.Range(wsP.Cells(maalRad, startCol), wsP.Cells(maalRad, sluttCol))
     rng.Merge
 
     ' STEG 4: Sett formatering
