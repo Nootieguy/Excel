@@ -362,85 +362,137 @@ Private Sub SkannPersonAktiviteter(wsP As Worksheet, wsTyp As Worksheet, _
         c = forsteDatoKol
         
         Do While c <= lastCol
-            celVal = Trim$(wsP.Cells(r, c).Value)
-            
+            Dim cel As Range
+            Set cel = wsP.Cells(r, c)
+            celVal = Trim$(cel.Value)
+
             ' Sjekk om dette er start paa en aktivitet (fet tekst)
-            If Len(celVal) > 0 And wsP.Cells(r, c).Font.Bold Then
+            If Len(celVal) > 0 And cel.Font.Bold Then
                 ' Ekstraher aktivitetskode (forste ord for "--")
                 aktivKode = ExtractAktivitetsKode(celVal)
                 kommentar = ExtractKommentar(celVal)
-                
-                ' Finn start og slutt av aktivitetsblokken
-                startCol = c
-                endCol = c
-                
-                ' Finn slutten av blokken (sammenhengende celler med samme farge)
-                Dim blokFarge As Long
-                blokFarge = wsP.Cells(r, c).Interior.Color
-                
-                Do While endCol < lastCol
-                    Dim NesteCelle As Range
-                    Set NesteCelle = wsP.Cells(r, endCol + 1)
-                    
-                    ' Stopp ved hvit celle, annen farge, eller ny aktivitet (fet tekst)
-                    If NesteCelle.Interior.Color = RGB(255, 255, 255) Or _
-                       NesteCelle.Interior.ColorIndex = xlColorIndexNone Then
-                        Exit Do
-                    ElseIf NesteCelle.Font.Bold And Len(Trim$(NesteCelle.Value)) > 0 Then
-                        Exit Do
-                    ElseIf NesteCelle.Interior.Color = blokFarge And _
-                           Len(Trim$(NesteCelle.Value)) = 0 Then
-                        endCol = endCol + 1
-                    Else
-                        Exit Do
+
+                ' HYBRID-MODUS: Sjekk om cellen er merged eller ikke-merged
+                If cel.MergeCells Then
+                    ' ===== MERGED CELL - Deterministisk metode =====
+                    Dim ma As Range
+                    Set ma = cel.MergeArea
+
+                    ' Hent start og slutt fra MergeArea (eksakt!)
+                    startCol = ma.Column
+                    endCol = ma.Column + ma.Columns.Count - 1
+
+                    ' Hent datoer fra kolonnehoder
+                    Dim datoOK As Boolean
+                    datoOK = False
+
+                    On Error Resume Next
+                    If IsDate(wsP.Cells(datoRad, startCol).Value) Then
+                        startDato = wsP.Cells(datoRad, startCol).Value
+                        If IsDate(wsP.Cells(datoRad, endCol).Value) Then
+                            sluttDato = wsP.Cells(datoRad, endCol).Value
+                            datoOK = True
+                        End If
                     End If
-                Loop
-                
-                ' Hent datoer fra kolonnehoder
-                Dim datoOK As Boolean
-                datoOK = False
-                
-                On Error Resume Next
-                If IsDate(wsP.Cells(datoRad, startCol).Value) Then
-                    startDato = wsP.Cells(datoRad, startCol).Value
-                    If IsDate(wsP.Cells(datoRad, endCol).Value) Then
-                        sluttDato = wsP.Cells(datoRad, endCol).Value
-                        datoOK = True
+                    On Error GoTo 0
+
+                    If datoOK Then
+                        ' Slaa opp aktivitetsbeskrivelse
+                        If Not LookupAktivitet(wsTyp, aktivKode, aktivBeskr, aktivFarge) Then
+                            aktivBeskr = ""
+                        End If
+
+                        ' Lag unik nokkel
+                        aktKey = personNavn & "|" & aktivKode & "|" & Format(startDato, "yyyy-mm-dd")
+
+                        ' Legg til i dictionary
+                        If Not aktiviteter.exists(aktKey) Then
+                            Dim aktInfo As Object
+                            Set aktInfo = CreateObject("Scripting.Dictionary")
+                            aktInfo("Person") = personNavn
+                            aktInfo("Kode") = aktivKode
+                            aktInfo("Beskrivelse") = aktivBeskr
+                            aktInfo("StartDato") = startDato
+                            aktInfo("SluttDato") = sluttDato
+                            aktInfo("Kommentar") = kommentar
+                            aktInfo("Forsinkelse") = 0
+
+                            aktiviteter.Add aktKey, aktInfo
+                        End If
                     End If
-                End If
-                On Error GoTo 0
-                
-                ' Hopp over hvis datoer er ugyldige
-                If Not datoOK Then
+
+                    ' Hopp til slutten av merged area
                     c = endCol + 1
-                    GoTo NesteCelle
+
+                Else
+                    ' ===== IKKE-MERGED - Gammel metode (fallback) =====
+                    startCol = c
+                    endCol = c
+
+                    ' Finn slutten av blokken (sammenhengende celler med samme farge)
+                    Dim blokFarge As Long
+                    blokFarge = cel.Interior.Color
+
+                    Do While endCol < lastCol
+                        Dim NesteCelle As Range
+                        Set NesteCelle = wsP.Cells(r, endCol + 1)
+
+                        ' Stopp ved hvit celle, annen farge, eller ny aktivitet
+                        If NesteCelle.Interior.Color = RGB(255, 255, 255) Or _
+                           NesteCelle.Interior.ColorIndex = xlColorIndexNone Then
+                            Exit Do
+                        ElseIf NesteCelle.Font.Bold And Len(Trim$(NesteCelle.Value)) > 0 Then
+                            Exit Do
+                        ElseIf NesteCelle.Interior.Color = blokFarge And _
+                               Len(Trim$(NesteCelle.Value)) = 0 Then
+                            endCol = endCol + 1
+                        Else
+                            Exit Do
+                        End If
+                    Loop
+
+                    ' Hent datoer
+                    Dim datoOK2 As Boolean
+                    datoOK2 = False
+
+                    On Error Resume Next
+                    If IsDate(wsP.Cells(datoRad, startCol).Value) Then
+                        startDato = wsP.Cells(datoRad, startCol).Value
+                        If IsDate(wsP.Cells(datoRad, endCol).Value) Then
+                            sluttDato = wsP.Cells(datoRad, endCol).Value
+                            datoOK2 = True
+                        End If
+                    End If
+                    On Error GoTo 0
+
+                    If datoOK2 Then
+                        ' Slaa opp beskrivelse
+                        If Not LookupAktivitet(wsTyp, aktivKode, aktivBeskr, aktivFarge) Then
+                            aktivBeskr = ""
+                        End If
+
+                        ' Lag nokkel
+                        aktKey = personNavn & "|" & aktivKode & "|" & Format(startDato, "yyyy-mm-dd")
+
+                        ' Legg til
+                        If Not aktiviteter.exists(aktKey) Then
+                            Dim aktInfo2 As Object
+                            Set aktInfo2 = CreateObject("Scripting.Dictionary")
+                            aktInfo2("Person") = personNavn
+                            aktInfo2("Kode") = aktivKode
+                            aktInfo2("Beskrivelse") = aktivBeskr
+                            aktInfo2("StartDato") = startDato
+                            aktInfo2("SluttDato") = sluttDato
+                            aktInfo2("Kommentar") = kommentar
+                            aktInfo2("Forsinkelse") = 0
+
+                            aktiviteter.Add aktKey, aktInfo2
+                        End If
+                    End If
+
+                    ' Hopp over blokken
+                    c = endCol + 1
                 End If
-                
-                ' Sl-- opp aktivitetsbeskrivelse
-                If Not LookupAktivitet(wsTyp, aktivKode, aktivBeskr, aktivFarge) Then
-                    aktivBeskr = ""
-                End If
-                
-                ' Lag unik n--kkel (person + kode + startdato)
-                aktKey = personNavn & "|" & aktivKode & "|" & Format(startDato, "yyyy-mm-dd")
-                
-                ' Legg til i dictionary hvis ikke allerede finnes
-                If Not aktiviteter.exists(aktKey) Then
-                    Dim aktInfo As Object
-                    Set aktInfo = CreateObject("Scripting.Dictionary")
-                    aktInfo("Person") = personNavn
-                    aktInfo("Kode") = aktivKode
-                    aktInfo("Beskrivelse") = aktivBeskr
-                    aktInfo("StartDato") = startDato
-                    aktInfo("SluttDato") = sluttDato
-                    aktInfo("Kommentar") = kommentar
-                    aktInfo("Forsinkelse") = 0  ' Default ingen forsinkelse
-                    
-                    aktiviteter.Add aktKey, aktInfo
-                End If
-                
-                ' Hopp over resten av denne blokken
-                c = endCol + 1
 NesteCelle:
             Else
                 c = c + 1
@@ -1031,7 +1083,7 @@ Private Function OppdaterAktivitetIPlanlegger(wsP As Worksheet, wsTyp As Workshe
         Else
             ' Ingen overlapp - bare utvid paa samme rad
             visTekst = kode & IIf(Len(kommentar) > 0, " -- " & kommentar, IIf(Len(beskrivelse) > 0, " -- " & beskrivelse, ""))
-            Call ApplyBlockFormattingExtend(wsP, maalRad, startCol, nyttSluttCol, farge, visTekst)
+            Call LagMergedAktivitet(wsP, maalRad, startCol, nyttSluttCol, farge, visTekst)
             OppdaterAktivitetIPlanlegger = True
         End If
     End If
@@ -1359,6 +1411,301 @@ Private Sub ApplyBlockFormattingExtend(wsP As Worksheet, maalRad As Long, _
             .Color = RGB(0, 0, 0)
         End With
     End If
+End Sub
+
+' ============================================================================
+' MERGED CELLS SYSTEM v2.0 - KJERNELOGIKK
+' ============================================================================
+' Erstatter gammel multi-celle system med merged cells for bedre robusthet
+' ============================================================================
+
+' ----------------------------------------------------------------------------
+' FUNKSJON: LagMergedAktivitet (erstatter ApplyBlockFormattingExtend)
+' ----------------------------------------------------------------------------
+' FORMAL:
+'   Lag en merged cell for en aktivitet med riktig formatering
+'
+' FORDELER:
+'   - En aktivitet = en entitet (ikke mange celler)
+'   - Eliminerer "blor ut"-problemer
+'   - Excel h�ndterer tekstplassering automatisk
+'   - Intui
+
+tivt for brukere (klikk hvor som helst velger hele aktiviteten)
+'
+' PARAMETERE:
+'   wsP - Planlegger-arket
+'   maalRad - Raden der aktiviteten skal plasseres
+'   startCol - Startkolonne (dato)
+'   sluttCol - Sluttkolonne (dato)
+'   farge - Bakgrunnsfarge (Long)
+'   visTekst - Tekst som vises i aktiviteten
+' ----------------------------------------------------------------------------
+Private Sub LagMergedAktivitet(wsP As Worksheet, maalRad As Long, _
+                               startCol As Long, sluttCol As Long, _
+                               farge As Long, visTekst As String)
+    ' STEG 1: Unmerge omraadet forst (hvis noe er merged)
+    Dim rng As Range
+    Set rng = wsP.Range(wsP.Cells(maalRad, startCol), wsP.Cells(maalRad, sluttCol))
+
+    On Error Resume Next
+    If rng.MergeCells Then
+        rng.UnMerge
+    End If
+    On Error GoTo 0
+
+    ' STEG 2: Rydd alle celler forst (sikrer ren slate)
+    Dim c As Long
+    For c = startCol To sluttCol
+        Call NullstillCelleTilHvitMedGridU5(wsP.Cells(maalRad, c))
+    Next c
+
+    ' STEG 3: Merge cellene
+    rng.Merge
+
+    ' STEG 4: Sett formatering
+    With rng
+        .Value = visTekst
+        .Font.Bold = True
+        .Font.Size = 10
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlCenter
+        .WrapText = True
+
+        ' Bakgrunnsfarge
+        .Interior.Color = farge
+        .Interior.Pattern = xlSolid
+        .Interior.TintAndShade = 0
+
+        ' Velg tekstfarge basert paa bakgrunnsfarge (kontrast)
+        .Font.Color = IIf(ErLysFarge(farge), RGB(0, 0, 0), RGB(255, 255, 255))
+    End With
+
+    ' STEG 5: Kraftige svarte borders rundt hele merged cell
+    With rng.Borders(xlEdgeLeft)
+        .LineStyle = xlContinuous
+        .Weight = xlThick
+        .Color = RGB(0, 0, 0)
+    End With
+    With rng.Borders(xlEdgeRight)
+        .LineStyle = xlContinuous
+        .Weight = xlThick
+        .Color = RGB(0, 0, 0)
+    End With
+    With rng.Borders(xlEdgeTop)
+        .LineStyle = xlContinuous
+        .Weight = xlThick
+        .Color = RGB(0, 0, 0)
+    End With
+    With rng.Borders(xlEdgeBottom)
+        .LineStyle = xlContinuous
+        .Weight = xlThick
+        .Color = RGB(0, 0, 0)
+    End With
+
+    ' Ingen inside borders (merged cell har ikke inside)
+
+    ' STEG 6: Gjenopprett bunnlinje paa raden under
+    If maalRad < wsP.Rows.Count Then
+        Dim rngUnder As Range
+        Set rngUnder = wsP.Range(wsP.Cells(maalRad + 1, startCol), wsP.Cells(maalRad + 1, sluttCol))
+        With rngUnder.Borders(xlEdgeTop)
+            .LineStyle = xlContinuous
+            .Weight = xlThin
+            .Color = RGB(0, 0, 0)
+        End With
+    End If
+End Sub
+
+' ----------------------------------------------------------------------------
+' FUNKSJON: SlettMergedAktivitet
+' ----------------------------------------------------------------------------
+' FORMAL:
+'   Slett en merged cell aktivitet og reset til hvit med grid
+'
+' FORDELER:
+'   - Automatisk unmerge
+'   - Komplett reset (forhindrer bleeding)
+'   - Hybrid-modus: Fungerer ogsaa paa ikke-merged celler
+'
+' PARAMETERE:
+'   wsP - Planlegger-arket
+'   rad - Raden der aktiviteten er
+'   kolonne - Hvilken som helst kolonne i aktiviteten
+' ----------------------------------------------------------------------------
+Private Sub SlettMergedAktivitet(wsP As Worksheet, rad As Long, kolonne As Long)
+    Dim cel As Range
+    Set cel = wsP.Cells(rad, kolonne)
+
+    If cel.MergeCells Then
+        ' MERGED CELL - haandter korrekt
+        Dim ma As Range
+        Set ma = cel.MergeArea
+
+        Dim startKol As Long, sluttKol As Long
+        startKol = ma.Column
+        sluttKol = ma.Column + ma.Columns.Count - 1
+
+        ' Unmerge forst
+        ma.UnMerge
+
+        ' Rydd alle celler i omraadet
+        Dim c As Long
+        For c = startKol To sluttKol
+            Call NullstillCelleTilHvitMedGridU5(wsP.Cells(rad, c))
+        Next c
+    Else
+        ' IKKE MERGED - fallback til gammel logikk (for hybrid-modus)
+        Call NullstillCelleTilHvitMedGridU5(cel)
+    End If
+End Sub
+
+' ==============================================================================
+' MIGRERING: Konverter alle ikke-merged aktiviteter til merged cells
+' ==============================================================================
+' Denne funksjonen skannes hele Planlegger-arket og konverterer alle
+' gamle "color-based" aktiviteter (multiple celler med samme farge) til
+' nye merged cells (en aktivitet = en merged celle).
+'
+' BRUK: Kjor denne funksjonen EN GANG for aa migrere eksisterende data.
+' Etter migrering vil alle nye aktiviteter automatisk opprettes som merged.
+'
+Public Sub KonverterTilMergedCells()
+    On Error GoTo ErrHandler
+
+    Dim wsP As Worksheet
+    Set wsP = ThisWorkbook.Worksheets(ARK_PLAN)
+
+    ' Deaktiver events og screen updating
+    Application.EnableEvents = False
+    Application.ScreenUpdating = False
+
+    Debug.Print "=== KONVERTERING TIL MERGED CELLS STARTER ==="
+    Debug.Print "Tidspunkt: " & Now
+
+    ' Hent struktur
+    Dim datoRad As Long, forstePersonRad As Long, forsteDatoKol As Long
+    datoRad = wsP.Range("FirstDate").Row
+    forstePersonRad = wsP.Range("PersonHeader").Row + 1
+    forsteDatoKol = wsP.Range("FirstDate").Column
+
+    Dim lastCol As Long, lastRow As Long
+    lastCol = wsP.Cells(datoRad, wsP.Columns.Count).End(xlToLeft).Column
+    lastRow = wsP.Cells(wsP.Rows.Count, 1).End(xlUp).Row
+
+    Debug.Print "Struktur: Rad " & forstePersonRad & " til " & lastRow
+    Debug.Print "Datokolonner: Kol " & forsteDatoKol & " til " & lastCol
+
+    ' Tellere
+    Dim antallKonvertert As Long, antallAlleredeKonvertert As Long
+    antallKonvertert = 0
+    antallAlleredeKonvertert = 0
+
+    ' Skann alle personer
+    Dim r As Long
+    For r = forstePersonRad To lastRow
+        Dim personNavn As String
+        personNavn = Trim$(wsP.Cells(r, 1).Value)
+
+        ' Hopp over tomme rader og rad med personnavn
+        If Len(personNavn) > 0 Then
+            Debug.Print "Sjekker person: " & personNavn
+
+            ' Skann kolonner
+            Dim c As Long
+            c = forsteDatoKol
+
+            Do While c <= lastCol
+                Dim cel As Range
+                Set cel = wsP.Cells(r, c)
+                Dim celVal As String
+                celVal = Trim$(cel.Value)
+
+                ' Sjekk om dette er start paa en aktivitet (fet tekst med innhold)
+                If Len(celVal) > 0 And cel.Font.Bold Then
+
+                    ' Sjekk om allerede merged
+                    If cel.MergeCells Then
+                        Debug.Print "  - Rad " & r & ", kol " & c & ": Allerede merged (hopper over)"
+                        antallAlleredeKonvertert = antallAlleredeKonvertert + 1
+
+                        ' Hopp til slutten av merged area
+                        Dim ma As Range
+                        Set ma = cel.MergeArea
+                        c = ma.Column + ma.Columns.Count
+
+                    Else
+                        ' IKKE MERGED - konverter!
+                        Debug.Print "  - Rad " & r & ", kol " & c & ": Funnet ikke-merged aktivitet: " & celVal
+
+                        ' Finn slutten av blokken (samme farge-logikk som i SkannPersonAktiviteter)
+                        Dim startCol As Long, endCol As Long
+                        startCol = c
+                        endCol = c
+
+                        Dim blokFarge As Long
+                        blokFarge = cel.Interior.Color
+
+                        Do While endCol < lastCol
+                            Dim NesteCelle As Range
+                            Set NesteCelle = wsP.Cells(r, endCol + 1)
+
+                            ' Stopp ved hvit celle
+                            If NesteCelle.Interior.Color = RGB(255, 255, 255) Or _
+                               NesteCelle.Interior.ColorIndex = xlColorIndexNone Then
+                                Exit Do
+                            ' Stopp ved ny aktivitet (bold med tekst)
+                            ElseIf NesteCelle.Font.Bold And Len(Trim$(NesteCelle.Value)) > 0 Then
+                                Exit Do
+                            ' Fortsett hvis samme farge og tom
+                            ElseIf NesteCelle.Interior.Color = blokFarge And _
+                                   Len(Trim$(NesteCelle.Value)) = 0 Then
+                                endCol = endCol + 1
+                            Else
+                                Exit Do
+                            End If
+                        Loop
+
+                        Debug.Print "    Span: Kol " & startCol & " til " & endCol & " (farge: " & blokFarge & ")"
+
+                        ' Konverter til merged cell
+                        Call LagMergedAktivitet(wsP, r, startCol, endCol, blokFarge, celVal)
+
+                        antallKonvertert = antallKonvertert + 1
+                        Debug.Print "    -> Konvertert til merged cell"
+
+                        ' Hopp til slutten av blokken
+                        c = endCol + 1
+                    End If
+                Else
+                    c = c + 1
+                End If
+            Loop
+        End If
+    Next r
+
+    ' Resultat
+    Debug.Print ""
+    Debug.Print "=== KONVERTERING FULLFORT ==="
+    Debug.Print "Antall konvertert: " & antallKonvertert
+    Debug.Print "Antall allerede merged: " & antallAlleredeKonvertert
+    Debug.Print "Total: " & (antallKonvertert + antallAlleredeKonvertert)
+
+    MsgBox "Konvertering fullfort!" & vbCrLf & vbCrLf & _
+           "Konverterte aktiviteter: " & antallKonvertert & vbCrLf & _
+           "Allerede merged: " & antallAlleredeKonvertert & vbCrLf & vbCrLf & _
+           "Se Immediate Window (Ctrl+G) for detaljer.", _
+           vbInformation, "Merged Cells Migrering"
+
+CleanExit:
+    Application.EnableEvents = True
+    Application.ScreenUpdating = True
+    Exit Sub
+
+ErrHandler:
+    Debug.Print "ERROR: " & Err.Description & " (rad " & r & ", kol " & c & ")"
+    MsgBox "Feil under konvertering: " & Err.Description, vbCritical, "Feil"
+    Resume CleanExit
 End Sub
 
 ' Tegn diagonal skravering for overlappende aktiviteter
@@ -1987,8 +2334,8 @@ Public Sub SynkroniserEnkeltAktivitet(person As String, kode As String, _
     ' Tegn ny aktivitet
     Dim visTekst As String
     visTekst = kode & IIf(Len(kommentar) > 0, " -- " & kommentar, IIf(Len(beskrivelse) > 0, " -- " & beskrivelse, ""))
-    
-    Call ApplyBlockFormattingExtend(wsP, maalRad, nyStartCol, nySluttCol, farge, visTekst)
+
+    Call LagMergedAktivitet(wsP, maalRad, nyStartCol, nySluttCol, farge, visTekst)
     
     ' MsgBox "Aktivitet oppdatert i Planlegger!", vbInformation
 End Sub
@@ -2147,8 +2494,8 @@ Public Sub FlyttAktivitetTilNyPerson(gammelPerson As String, nyPerson As String,
     ' STEG 3: Tegn aktivitet hos ny person
     Dim visTekst As String
     visTekst = kode & IIf(Len(kommentar) > 0, " -- " & kommentar, IIf(Len(beskrivelse) > 0, " -- " & beskrivelse, ""))
-    
-    Call ApplyBlockFormattingExtend(wsP, nyRad, startCol, sluttCol, farge, visTekst)
+
+    Call LagMergedAktivitet(wsP, nyRad, startCol, sluttCol, farge, visTekst)
     
     MsgBox "Aktivitet flyttet fra '" & gammelPerson & "' til '" & nyPerson & "'!", vbInformation
 End Sub
