@@ -3,35 +3,35 @@ Option Explicit
 ' ==============================================================================
 ' MODULE 5 - RESIZE-FUNKSJONALITET FOR MERGED AKTIVITETER
 ' ==============================================================================
-' Håndterer Ctrl+klikk resize av merged aktiviteter i Planlegger-arket
+' Håndterer Shift+klikk resize av merged aktiviteter i Planlegger-arket
 ' Automatisk overlapp-håndtering og rutenett-restore
 '
 ' BRUK:
-'   Hold Ctrl og klikk på målcellen for å resize nærmeste aktivitet
+'   Hold Shift og klikk på målcellen for å resize nærmeste aktivitet
 '
 ' FUNKSJONER:
-'   - HaandterCtrlKlikk: Hovedfunksjon som håndterer Ctrl+klikk
+'   - HaandterShiftKlikk: Hovedfunksjon som håndterer Shift+klikk
 '   - FinnNaermesteMergedAktivitet: Finner aktivitet å resize
 '   - ResizeMergedAktivitet: Utfører resize med rutenett-restore
 '   - HaandterOverlappVedResize: Håndterer kolliderende aktiviteter
 ' ==============================================================================
 
-' ===== WINDOWS API FOR CTRL-KLIKK DETEKSJON =====
+' ===== WINDOWS API FOR SHIFT-KLIKK DETEKSJON =====
 #If VBA7 Then
     ' Excel 2010 og nyere (både 32-bit og 64-bit)
     Public Declare PtrSafe Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
 #End If
 
 ' ----------------------------------------------------------------------------
-' FUNKSJON: HaandterCtrlKlikk
+' FUNKSJON: HaandterShiftKlikk
 ' ----------------------------------------------------------------------------
-' Håndterer Ctrl+klikk for å resize merged aktiviteter
-' Brukeren holder Ctrl og klikker på målcellen (hvor aktiviteten skal utvides til)
+' Håndterer Shift+klikk for å resize merged aktiviteter
+' Brukeren holder Shift og klikker på målcellen (hvor aktiviteten skal utvides til)
 ' ----------------------------------------------------------------------------
-Public Sub HaandterCtrlKlikk(wsP As Worksheet, Target As Range)
+Public Sub HaandterShiftKlikk(wsP As Worksheet, Target As Range)
     On Error GoTo ErrHandler
 
-    Debug.Print "=== HaandterCtrlKlikk START ==="
+    Debug.Print "=== HaandterShiftKlikk START ==="
 
     Dim rad As Long, malKol As Long
     rad = Target.Row
@@ -110,7 +110,7 @@ Public Sub HaandterCtrlKlikk(wsP As Worksheet, Target As Range)
     Exit Sub
 
 ErrHandler:
-    Debug.Print "FEIL i HaandterCtrlKlikk: " & Err.Description
+    Debug.Print "FEIL i HaandterShiftKlikk: " & Err.Description
     MsgBox "Feil ved resize: " & Err.Description, vbCritical
 End Sub
 
