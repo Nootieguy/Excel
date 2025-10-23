@@ -1977,28 +1977,10 @@ Public Sub SynkroniserEnkeltAktivitet(person As String, kode As String, _
     End If
     
     ' Rydd gammel aktivitet
+    ' Bruk NullstillCelleTilHvitMedGridU5 for komplett cleanup
     If gammelStartCol > 0 Then
         For c = gammelStartCol To gammelSluttCol
-            With wsP.Cells(maalRad, c)
-                .ClearContents
-                .Interior.Color = RGB(255, 255, 255)
-                .Interior.Pattern = xlSolid
-                .Font.Bold = False
-                
-                ' Grid
-                With .Borders(xlEdgeLeft)
-                    .LineStyle = xlContinuous: .Weight = xlThin: .ColorIndex = xlColorIndexAutomatic
-                End With
-                With .Borders(xlEdgeRight)
-                    .LineStyle = xlContinuous: .Weight = xlThin: .ColorIndex = xlColorIndexAutomatic
-                End With
-                With .Borders(xlEdgeTop)
-                    .LineStyle = xlContinuous: .Weight = xlThin: .ColorIndex = xlColorIndexAutomatic
-                End With
-                With .Borders(xlEdgeBottom)
-                    .LineStyle = xlContinuous: .Weight = xlThin: .ColorIndex = xlColorIndexAutomatic
-                End With
-            End With
+            Call NullstillCelleTilHvitMedGridU5(wsP.Cells(maalRad, c))
         Next c
     End If
     
@@ -2148,28 +2130,9 @@ Public Sub FlyttAktivitetTilNyPerson(gammelPerson As String, nyPerson As String,
     End If
 
     ' STEG 1: Rydd aktiviteten fra gammel person
+    ' Bruk NullstillCelleTilHvitMedGridU5 for komplett cleanup
     For c = startCol To sluttCol
-        With wsP.Cells(gammelRad, c)
-            .ClearContents
-            .Interior.Color = RGB(255, 255, 255)
-            .Interior.Pattern = xlSolid
-            .Font.Bold = False
-            .Font.ColorIndex = xlColorIndexAutomatic
-            
-            ' Grid
-            With .Borders(xlEdgeLeft)
-                .LineStyle = xlContinuous: .Weight = xlThin: .ColorIndex = xlColorIndexAutomatic
-            End With
-            With .Borders(xlEdgeRight)
-                .LineStyle = xlContinuous: .Weight = xlThin: .ColorIndex = xlColorIndexAutomatic
-            End With
-            With .Borders(xlEdgeTop)
-                .LineStyle = xlContinuous: .Weight = xlThin: .ColorIndex = xlColorIndexAutomatic
-            End With
-            With .Borders(xlEdgeBottom)
-                .LineStyle = xlContinuous: .Weight = xlThin: .ColorIndex = xlColorIndexAutomatic
-            End With
-        End With
+        Call NullstillCelleTilHvitMedGridU5(wsP.Cells(gammelRad, c))
     Next c
     
     ' STEG 2: Finn ledig rad hos ny person
