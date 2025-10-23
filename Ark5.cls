@@ -475,6 +475,7 @@ End Function
 
 ' ----------------------------------------------------------------------------
 ' FUNKSJON: VerifiserAktivitetSpenn
+' OPPDATERT: Støtter både merged og ikke-merged (hybrid-modus v2.0)
 ' ----------------------------------------------------------------------------
 Private Function VerifiserAktivitetSpenn(wsP As Worksheet, _
                                         rad As Long, _
@@ -482,10 +483,34 @@ Private Function VerifiserAktivitetSpenn(wsP As Worksheet, _
                                         sluttCol As Long) As Boolean
     Dim c As Long
     Dim cel As Range
+    Dim startCel As Range
+    Set startCel = wsP.Cells(rad, startCol)
+
+    ' METODE 1: Sjekk om startcelle er merged (nye systemet)
+    If startCel.MergeCells Then
+        Dim ma As Range
+        Set ma = startCel.MergeArea
+
+        ' Sjekk om merged area matcher forventet span
+        Dim mergedStart As Long, mergedEnd As Long
+        mergedStart = ma.Column
+        mergedEnd = ma.Column + ma.Columns.Count - 1
+
+        ' Gyldig hvis merged area dekker hele spannet (eller mer)
+        If mergedStart <= startCol And mergedEnd >= sluttCol Then
+            VerifiserAktivitetSpenn = True
+            Exit Function
+        Else
+            ' Merged area matcher ikke - ugyldig
+            VerifiserAktivitetSpenn = False
+            Exit Function
+        End If
+    End If
+
+    ' METODE 2: Gammel farge-basert verifisering (fallback for ikke-merged)
     Dim startFarge As Long
     Dim alleFet As Boolean
-
-    startFarge = wsP.Cells(rad, startCol).Interior.Color
+    startFarge = startCel.Interior.Color
     alleFet = True
 
     For c = startCol To sluttCol

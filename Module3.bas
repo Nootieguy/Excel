@@ -1441,7 +1441,7 @@ tivt for brukere (klikk hvor som helst velger hele aktiviteten)
 '   farge - Bakgrunnsfarge (Long)
 '   visTekst - Tekst som vises i aktiviteten
 ' ----------------------------------------------------------------------------
-Private Sub LagMergedAktivitet(wsP As Worksheet, maalRad As Long, _
+Public Sub LagMergedAktivitet(wsP As Worksheet, maalRad As Long, _
                                startCol As Long, sluttCol As Long, _
                                farge As Long, visTekst As String)
     ' STEG 1: Unmerge omraadet forst (hvis noe er merged)
@@ -1533,7 +1533,7 @@ End Sub
 '   rad - Raden der aktiviteten er
 '   kolonne - Hvilken som helst kolonne i aktiviteten
 ' ----------------------------------------------------------------------------
-Private Sub SlettMergedAktivitet(wsP As Worksheet, rad As Long, kolonne As Long)
+Public Sub SlettMergedAktivitet(wsP As Worksheet, rad As Long, kolonne As Long)
     Dim cel As Range
     Set cel = wsP.Cells(rad, kolonne)
 
