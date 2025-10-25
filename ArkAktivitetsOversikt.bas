@@ -1,5 +1,3 @@
-Attribute VB_Name = "ArkAktivitetsOversikt"
-
 ' ========================================================================
 ' WORKSHEET EVENT: AKTIVITETSOVERSIKT
 ' Håndterer automatisk synkronisering til Planlegger når bruker endrer data

@@ -2,16 +2,11 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "Ark7"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
 Private Sub Worksheet_Change(ByVal Target As Range)
     On Error GoTo Slutt
     If Target Is Nothing Then Exit Sub
     
-    ' Disable events for å unngå loop
+    ' Disable events for Ã¥ unngÃ¥ loop
     Application.EnableEvents = False
     
     ' Personkolonne = F (6), fra rad 10 og ned
@@ -30,7 +25,7 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         ' Sjekk om det er endringer i kolonne A-E (kode, dato osv.)
         Set rng = Application.Intersect(Target, Me.Range(Me.Cells(10, 1), Me.Cells(Me.Rows.Count, 5)))
         If Not rng Is Nothing Then
-            ' Refresh preview automatisk (med forsinkelse for å unngå spam)
+            ' Refresh preview automatisk (med forsinkelse for Ã¥ unngÃ¥ spam)
             Application.OnTime Now + TimeValue("00:00:01"), "Uvalgte_RefreshPreview"
         End If
     End If
